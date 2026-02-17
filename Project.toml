@@ -1,0 +1,14 @@
+name = "EigenstratFormat"
+uuid = "df1a4358-36d9-4579-8618-03b057c4e7d8"
+version = "0.1.0"
+authors = ["Dirk Struve <yogischogi@gmail.com>"]
+
+[deps]
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
+
+[compat]
+CSV = "0.10.15"
+DataFrames = "1.8.1"
+DelimitedFiles = "1.9.1"
