@@ -4,7 +4,7 @@ EigenstratFormat is a library for the [Julia](https://julialang.org/)
 programming language to work with the Eigenstrat data format.
 
 The Eigenstrat format is often used in genetics. Its definition
-can be found at [David Reich's laboratory](https://reich.hms.harvard.edu/software/InputFileFormats).
+can be found at [David Reich's laboratory](https://reich.hms.harvard.edu/software/InputFileFormats)
 and in more detail in the [Eigensoft package](https://github.com/DReichLab/EIG).
 
 ## Ancient human DNA samples in Eigenstrat format
