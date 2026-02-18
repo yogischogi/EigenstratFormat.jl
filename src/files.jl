@@ -5,12 +5,12 @@
 
 Calculate the hashsum of a String.
 
-This is basically the same method as in the software from David Reich's laboratory:
-https://github.com/DReichLab/EIG
+This is basically the same method as in Nick Patterson's original
+[C code](https://github.com/DReichLab/EIG/blob/master/src/admutils.c).
 
 However, the original C version uses 32 bit integer values and integer
 overflows which may result in undefined behavior on some machines. 
-This method uses 64 bit integers and is well defined.
+This method uses 64 bit integers to circumvent this problem.
 
 This method will probably fail if the sequence contains non-ASCII
 Unicode characters. I do not know if this is defined in any way.
@@ -30,8 +30,8 @@ end
 
 Calculate the hashsum of a Vector of Strings using the _hashit() method.
 
-Again this is basically the same method as in the software from David Reich's laboratory:
-https://github.com/DReichLab/EIG
+This is the same method as the `hasharr` function in
+Nick Patterson's [C code](https://github.com/DReichLab/EIG/blob/master/src/admutils.c).
 """
 function _hashsum(sequences::Vector{<:AbstractString})
     hash::Int64 = 0
@@ -61,7 +61,7 @@ end
 """
     _bitpair(byte::UInt8, pos::Int64)
 
-Extract 2 bits from a byte. The bit positions start with 0.
+Extract 2 bits from a byte. The bit positions start at 0.
 Allowed are values 0, 1, 2, 3.
 """
 function _bitpair(byte::UInt8, pos::Integer)
@@ -80,16 +80,18 @@ end
     _alleles(bytes::Vector{UInt8}, idx::Int64)
 
 Return the number of variant alleles for a specified individual.
-bytes: Row of bytes that encode an SNP for all individuals.
-idx: Index of the individual.
+
+`bytes`: Row of bytes that encode an SNP for all individuals.
+
+`idx`: Index of the individual.
 """
 function _alleles(bytes::Vector{UInt8}, idx::Int64)
-    # Fine byte that encodes the specified SNP.
+    # Find byte that encodes the specified SNP.
     pos = Int64(ceil(idx / 4))
     byte = bytes[pos]
 
     # Extract bitpair that contains individual's data.
-    # bitpair index starts with 0.
+    # bitpair index starts at 0.
     bitpair_no = (idx - 1) % 4
     bits = _bitpair(byte, bitpair_no)
     return UInt8(bits)
@@ -105,10 +107,13 @@ end
 
 Read a genofile in PackedAncestryMap format. The file must be unzipped.
 
-genofile: filename
-nsnp: number of SNPs, listed in .snp file.
-nind: number of individuals, listed in .ind file.
-ind_idx: Indices of individuals that should be read from the file.
+`genofile`: filename
+
+`nsnp`: number of SNPs listed in .snp file.
+
+`nind`: number of individuals listed in .ind file.
+
+`ind_idx`: Indices of individuals that should be read from the file.
 
 XXX Check for comment lines in .snp and .ind files.
 
@@ -117,11 +122,13 @@ So far files in the AADR archive seem to be GENO. So this method
 does not support the transposed TGENO format.
 
 The text format contains one line per genotype:
+
 SNP_ID  Sample_ID   Number_of_variant_alleles
 
 The packed format:
+
 Each SNP entry has 2 bits: 0, 1, 2, 3=missing, that denote the number
-of variant alleles (https://reich.hms.harvard.edu/software/InputFileFormats).
+of variant alleles as described at [David Reich's laboratory](https://reich.hms.harvard.edu/software/InputFileFormats).
 """
 function read_eigenstrat_geno(
     genofile::AbstractString,
@@ -164,8 +171,9 @@ end
 
 Write a genotype matrix to file in PackedAncestryMap format.
 
-ind_hash: Hashsum of .ind file.
-snp_hash: Hashsum of .snp file.
+`ind_hash`: Hashsum of .ind file.
+
+`snp_hash`: Hashsum of .snp file.
 """
 function write_eigenstrat_geno(
     genofile::AbstractString,
@@ -227,7 +235,9 @@ end
 
 Read file with autosomal results from FTDNA Family Finder, My Heritage
 or LivingDNA. Should also work with 24andMe files but not tested.
-Return a DataFrame containing the columns:
+
+Return a `DataFrame` containing the columns:
+
 rsid  chromosome  position  genotype
 """
 function read_snp_file(filename::AbstractString)
@@ -246,7 +256,8 @@ end
 Read Eigenstrat .snp file. The SNP file contains information about
 each SNP.
 
-Return a DataFrame containing the columns:
+Return a `DataFrame` containing the columns:
+
 chromosome, rsid, cM, position, allele1, allele2
 """
 function read_eigenstrat_snp(snpfile::AbstractString)
@@ -267,9 +278,10 @@ end
     write_eigenstrat_snp(filename::AbstractString, snps::DataFrame)
 
 Write .snp file in Eigenstrat format. The SNP file contains information
-about each SNP. The SNPs are provided as a DataFrame in parameter snps.
+about each SNP. The SNPs are provided as a `DataFrame` in parameter `snps`.
 
 The DataFrame must consist of the following columns:
+
 chromosome, rsid, cM, position, allele1, allele2
 """
 function write_eigenstrat_snp(filename::AbstractString, snps::AbstractDataFrame)
@@ -283,10 +295,14 @@ Read individuals from Eigenstrat .ind file.
 The IND flle contains information about each individual in the
 database.
 
-Return a DataFrame consisting of the columns:
+Return a `DataFrame` consisting of the columns:
+
 ID, Gender, Status
+
 where
-Gender: M (male), F (Female), U (unknown).
+
+Gender: M (male), F (Female) or U (unknown).
+
 Status: Case, Control or population label.
 """
 function read_eigenstrat_ind(indfile::AbstractString)
@@ -299,8 +315,11 @@ end
     write_eigenstrat_ind(filename::AbstractString, inds::AbstractDataFrame)
 
 Write information about each individual to an .ind file.
-The parameter inds contains information about each individual.
-The DataFrame must have the columns
+
+The parameter `inds` contains information about each individual.
+
+The `DataFrame` must have the columns
+
 ID, Gender, Status
 """
 function write_eigenstrat_ind(filename::AbstractString, inds::AbstractDataFrame)
@@ -316,7 +335,8 @@ end
     )
 
 Encode the given genotype in a byte at the given bitpair position (0..3).
-Each SNP is characterized by a Tuple of two alleles. The reference_snp
+
+Each SNP is characterized by a Tuple of two alleles. The `reference_snp`
 contains the reference allele and the derived allele.
 """
 function _encode(
@@ -365,21 +385,24 @@ end
         status = "Control"
     )
 
-Add an individual to a database in Eigenstrat format for example the AADR database. 
+Add an individual to a database in Eigenstrat format. 
 
 The SNPs in the database remain untouched. If the individual displayes SNPs
 that are not listed in the database or multiallelic ones those SNPs are removed.
 
-This method is recommended if databse is too large to fit into memory.
+`inprefix`: Prefix of the input database.
 
-inprefix: Prefix of the input database.
-outprefix: Prefix of the output database.
-ind_snp_file: File containing SNP results for the individual. This should
+`outprefix`: Prefix of the output database.
+
+`ind_snp_file`: File containing SNP results for the individual. This should
     work with files from Family Tree DNA Family Finder, MyHeritage, LivingDNA
     and 23andMe.
-id: ID of the individual. For living persons I recommed the name.
-gender: U, F, M: Unknown, Female, Male
-status: Control, Case or a population label.
+
+`id`: ID of the individual. For living persons I recommed the name.
+
+`gender`: U, F or M (Unknown, Female or Male)
+
+`status`: Control, Case or a population label.
 """
 function add_individual(
     inprefix::AbstractString,
@@ -482,9 +505,16 @@ end
     write_23andMe(filename::AbstractString, snptable)
 
 Write a table of SNPs in 23andMe file format.
+
+This method is included to satisfy users who use
+[Plink](https://www.cog-genomics.org/plink2/).
+Plink supports 23andMe files.
+
 The snp table must satisfy the
 [Tables.jl interface](https://github.com/JuliaData/Tables.jl).
+
 The table must contain the columns:
+
 rsid, chromosome, position, genotype
 
 However exact spelling is not mandatory.
@@ -492,10 +522,6 @@ However exact spelling is not mandatory.
 function write_23andMe(filename::AbstractString, snptable)
     CSV.write(filename, snptable; delim = "\t", header = ["#rsid", "chromosome", "position", "genotype"])
 end
-
-
-
-
 
 
 
