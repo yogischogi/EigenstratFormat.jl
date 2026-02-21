@@ -109,7 +109,7 @@ version = "1.7.0"
 
 [[deps.EigenstratFormat]]
 deps = ["CSV", "DataFrames", "DelimitedFiles"]
-git-tree-sha1 = "6b51592d6982c79def21f1e6f495302d957fee17"
+git-tree-sha1 = "09705d9cf13d8379d49674d11a6a2b4fdbeebf67"
 repo-rev = "main"
 repo-url = ".."
 uuid = "df1a4358-36d9-4579-8618-03b057c4e7d8"

@@ -1,5 +1,14 @@
+push!(LOAD_PATH, "../src/")
 using Documenter, EigenstratFormat
 
-#push!(LOAD_PATH, "../src/")
-makedocs(sitename="EigenstratFormat.jl", remotes=nothing)
+makedocs(
+    sitename = "EigenstratFormat.jl",
+    modules = [EigenstratFormat],
+#    remotes = nothing
+)
+deploydocs(;
+    repo="github.com/yogischogi/EigenstratFormat.jl",
+    devbranch = "main"
+)
+
 
