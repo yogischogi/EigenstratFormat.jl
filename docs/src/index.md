@@ -23,7 +23,7 @@ pkg> Press BACKSPACE
 julia> using EigenstratFormat
 ```
 After that you may want to take a look at the
-[coding examples](https://github.com/yogischogi/EigenstratFormat.jl/tree/main/examples).
+[code examples](https://github.com/yogischogi/EigenstratFormat.jl/tree/main/examples).
 
 
 ## Human DNA samples
