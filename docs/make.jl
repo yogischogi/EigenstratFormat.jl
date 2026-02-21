@@ -7,7 +7,7 @@ makedocs(
 #    remotes = nothing
 )
 deploydocs(;
-    repo="github.com/yogischogi/EigenstratFormat.jl",
+    repo="github.com/yogischogi/EigenstratFormat.jl.git",
     devbranch = "main"
 )
 
