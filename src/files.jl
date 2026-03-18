@@ -327,6 +327,17 @@ function write_eigenstrat_ind(filename::AbstractString, inds::AbstractDataFrame)
 end
 
 """
+    read_eigenstrat_anno(filename::AbstractString)
+
+Read Eigenstrat annotations file (.anno) in tab delimited text format.
+
+Return a DataFrame.
+"""
+function read_eigenstrat_anno(filename::AbstractString)
+    return CSV.read(filename, DataFrame; delim = "\t")
+end
+
+"""
     _encode(
         genotype::Tuple{Char, Char},
         byte::UInt8,

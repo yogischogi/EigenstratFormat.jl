@@ -1,2 +1,6 @@
+2026-03-18
+- New example aadr.jl demonstrates how to extract data from the AADR database.
+- New function read_eigenstrat_anno to read meta information for samples.
+
 2026-03-13
 - New function pca to perform PCA analysis.

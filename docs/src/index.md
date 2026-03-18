@@ -25,6 +25,9 @@ julia> using EigenstratFormat
 After that you may want to take a look at the
 [code examples](https://github.com/yogischogi/EigenstratFormat.jl/tree/main/examples).
 
+- `files.jl` demonstrates basic file operations.
+- `aadr.jl` shows how to extract samples from the AADR database.
+
 
 ## Human DNA samples
 
