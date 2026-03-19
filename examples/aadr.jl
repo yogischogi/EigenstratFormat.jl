@@ -35,17 +35,6 @@ const genofileout = joinpath(basedir, "modern.geno")
 
 # Let's define some helper functions.
 
-# Return a vector that contains indices of modern samples.
-function get_indices_modern(annofile)
-    annotations = read_eigenstrat_anno(annofile)
-    # Create a vector that contains true or false for each entry which's age == 0.
-    hits = annotations[!, :("Date mean in BP in years before 1950 CE [OxCal mu for a direct radiocarbon date, and average of range for a contextual date]")] .== 0
-    # Create a vector of indices.
-    idxs = [i for i = 1:length(hits)]
-    # Filter index vector for all true entries in the hits vector.
-    return filter(i -> hits[i], idxs)
-end
-
 # Extract all modern inndividuals from .ind file.
 function extract_modern_ind(indices::Vector{<:Integer}, infile, outfile)
     inds = read_eigenstrat_ind(infile)
@@ -70,15 +59,29 @@ end
 
 # Create a new database containing modern individuals.
 
-# Determine indices of all modern samples.
-idxs = get_indices_modern(annofile)
+# Determine which samples are modern by checking the age.
+annotations = read_eigenstrat_anno(annofile)
+# Create a vector that contains true or false for each entry which's age == 0.
+modern = annotations[!, :("Date mean in BP in years before 1950 CE [OxCal mu for a direct radiocarbon date, and average of range for a contextual date]")] .== 0
+
+# Determine which samples are valid (not marked as "Ignore")
+individuals = read_eigenstrat_ind(indfile)
+valid = .~startswith.(individuals[!, :Status], "Ignore")
+outlier = contains.(individuals[!, :Status], "outlier")
+
+# Create a vector of indices we can use to access the database.
+all_idxs = [i for i = 1:nrow(individuals)]
+hits = modern .& valid .& (.~outlier)
+# Filter index vector for all true entries in the hits vector.
+idxs = filter(i -> hits[i], all_idxs)
+
 # Use indices to create now .ind and .anno files.
 extract_modern_ind(idxs, indfile, indfileout)
 extract_modern_anno(idxs, annofile, annofileout)
 
 # SNP file remains untouched.
-# Copy it for consistency.
-cp(snpfile, snpfileout)
+# Copy it for consistency and overwrite an old version.
+cp(snpfile, snpfileout; force = true)
 
 nsnp = countlines(snpfile)
 nind = countlines(indfile)
