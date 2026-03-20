@@ -1,4 +1,35 @@
 """
+    impute_missing(genomatrix::Matrix){UInt8}
+
+Impute missing values by replacing them with mean values.
+
+Return a Matrix{Float64}.
+
+It is assumed that all SNPs are biallelic.
+
+`genomatrix` contains the number of reference (or derived) alleles for each sample and SNP.
+Each row represents one SNP. Each sample is represented by a column.
+"""
+function impute_missing(genomatrix::Matrix{UInt8})
+    missing_value = 3
+    nrow, ncol = size(genomatrix)
+    result = Matrix{Float64}(undef, nrow, ncol)
+    
+    for i in 1:nrow
+        # Compute mean for existing values.
+        m = mean(filter(x -> x != missing_value, genomatrix[i, :]))
+        for j in 1:ncol
+            if genomatrix[i, j] == missing_value
+                result[i, j] = m
+            else
+                result[i, j] = genomatrix[i, j]
+            end
+        end
+    end
+    return result
+end
+
+"""
     pca(genomatrix, indframe; ncomponents = 25, scaling = "genetic drift", geno_contains_reference = true)
 
 Perform PCA analysis on Eigenstrat data using SVD (Single value decomposition).
@@ -35,47 +66,29 @@ as described in
 assumes that the genomatrix contains the number of derived alleles.
 To stay compatible with the R package choose `geno_contains_reference = false`.
 """
-function pca(genomatrix, indframe; ncomponents = 25, scaling = "genetic drift", geno_contains_reference = true)
+function pca(genomatrix::Matrix{UInt8}, indframe; ncomponents = 25, scaling = "genetic drift", geno_contains_reference = true)
     if scaling != "z-score" && scaling != "genetic drift"
         throw("EigenstratFormat.pca: scaling must be z-score or genetic drift")
     end
 
     nrow, ncol = size(genomatrix)
-    adjusted = Matrix{Float64}(undef, nrow, ncol)
-    missing_value = 3
+    adjusted = impute_missing(genomatrix)    
 
-    # Replace missing values with mean values.
-    # We assume that all SNPs are biallelic.
-    for i in 1:nrow
-        # Compute mean for existing values.
-        m = mean(filter(x -> x != missing_value, genomatrix[i, :]))
-        for j in 1:ncol
-            # According to the Eigensoft manual the genomatrix contains the number
-            # of reference alleles.
-            # However, some researches seem to interpret this differently.
-            # For compatibillity reasons we allow both options here.
-            if geno_contains_reference == true
-                # genomatrix contains number of reference alleles.
-                # Calculated number of derived alleles, assuming biallelic markers.
-                if genomatrix[i, j] != missing_value
-                    adjusted[i, j] = 2 - genomatrix[i, j]
-                else
-                    # Replace missing values with mean value.
-                    adjusted[i, j] = 2 - m
-                end
-            else
-                # genomatrix contains derived alleles.
-                if genomatrix[i, j] != missing_value
-                    adjusted[i, j] = genomatrix[i, j]
-                else
-                    # Replace missing values with mean value.
-                    adjusted[i, j] = m
-                end
-            end
+    # If genomatrix contains number of reference alleles
+    # calculate number of derived alleles, assuming biallelic markers.
+    # According to the Eigensoft manual the genomatrix contains the number
+    # of reference alleles.
+    # However, some researches seem to interpret this differently.
+    # For compatibillity reasons we allow both options here.
+    if geno_contains_reference == true
+        for i in 1:nrow, j in 1:ncol
+            # Calculate number of derived alleles in place to save memory.
+            adjusted[i, j] = 2 - adjusted[i, j]
         end
     end
 
-    # Remove invariant markers.
+    # Remove invariant markers by copying non-invariant markers in place
+    # into the old matrix.
     count = 0
     for i in 1:nrow
         first = adjusted[i, 1]    
@@ -87,7 +100,6 @@ function pca(genomatrix, indframe; ncomponents = 25, scaling = "genetic drift", 
             end
         end
     end
-
     adjusted = adjusted[1:count, :]
     nrow, ncol = size(adjusted)
 
