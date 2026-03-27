@@ -1,6 +1,15 @@
+2026-03-27
+- massive changes to pca!()
+- Added pca_components().
+- Added remove_invariant!().
+
+2026-03-26
+- Replaced pca() with pca!().
+- impute_missing now works with all kinds of real numbers.
+
 2026-03-20
-- Added impute_missing.
-- Rewrote pca.
+- Added impute_missing().
+- Rewrote pca().
 
 2026-03-18
 - New example aadr.jl demonstrates how to extract data from the AADR database.

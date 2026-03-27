@@ -12,7 +12,7 @@ export read_snp_file, write_23andMe
 export add_individual, hash_ids
 
 # Computations
-export impute_missing, pca
+export impute_missing, pca!, pca_components, remove_invariant!
 
 include("files.jl")
 include("computations.jl")

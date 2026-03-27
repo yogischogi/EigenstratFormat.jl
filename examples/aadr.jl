@@ -75,6 +75,12 @@ hits = modern .& valid .& (.~outlier)
 # Filter index vector for all true entries in the hits vector.
 idxs = filter(i -> hits[i], all_idxs)
 
+# In case the resulting database gets to large or computations
+# take to much time remove some indices.
+# This is also useful for testing a processing pipeline.
+# Here we select each tentth element.
+idxs = [idxs[i] for i in 10:10:length(idxs)]
+
 # Use indices to create now .ind and .anno files.
 extract_modern_ind(idxs, indfile, indfileout)
 extract_modern_anno(idxs, annofile, annofileout)

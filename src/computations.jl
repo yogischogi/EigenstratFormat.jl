@@ -1,28 +1,61 @@
 """
-    impute_missing(genomatrix::Matrix){UInt8}
+    remove_invariant!(geno::Matrix{<:Real})
+
+Remove invariant markers from a genomatrix.
+Return a matrix that contains only valid markers.
+
+However, because the matrices can get very big the original matrix
+is changed in place and is no longer valid. This is ugly, I know,
+but I often ran out of memory testing this library.
+
+`geno` is the matrix. Each row represents one single marker for multiple samples.
+"""
+function remove_invariant!(geno::Matrix{<:Real})
+    # Remove invariant markers by copying non-invariant markers in place
+    # into the old matrix.
+    missing_value = 3
+    nrow, ncol = size(geno)
+    count = 0
+    for i in 1:nrow
+        first = geno[i, 1]    
+        for j in 2:ncol
+            if geno[i, j] != first && geno[i, j] != missing_value
+                count += 1
+                geno[count, :] = geno[i, :]
+                break
+            end
+        end
+    end
+    return geno[1:count, :]
+end
+
+"""
+    impute_missing(genomatrix::Matrix{<:Real})
 
 Impute missing values by replacing them with mean values.
 
 Return a Matrix{Float64}.
 
 It is assumed that all SNPs are biallelic.
+This function can really eat up lots of memory because the computation
+is not done in place and the result is a Float64 matrix.
+Maybe we should stay with UInt8 and use rounded values for missing alleles?
 
-`genomatrix` contains the number of reference (or derived) alleles for each sample and SNP.
+`geno` contains the number of reference (or derived) alleles for each sample and SNP.
 Each row represents one SNP. Each sample is represented by a column.
 """
-function impute_missing(genomatrix::Matrix{UInt8})
+function impute_missing(geno::Matrix{<:Real})
     missing_value = 3
-    nrow, ncol = size(genomatrix)
-    result = Matrix{Float64}(undef, nrow, ncol)
-    
+    nrow, ncol = size(geno)
+    result = Matrix{Float64}(undef, nrow, ncol) 
     for i in 1:nrow
         # Compute mean for existing values.
-        m = mean(filter(x -> x != missing_value, genomatrix[i, :]))
+        m = mean(filter(x -> x != missing_value, geno[i, :]))
         for j in 1:ncol
-            if genomatrix[i, j] == missing_value
+            if geno[i, j] == missing_value
                 result[i, j] = m
             else
-                result[i, j] = genomatrix[i, j]
+                result[i, j] = geno[i, j]
             end
         end
     end
@@ -30,20 +63,24 @@ function impute_missing(genomatrix::Matrix{UInt8})
 end
 
 """
-    pca(genomatrix, indframe; ncomponents = 25, scaling = "genetic drift", geno_contains_reference = true)
+    pca!(geno::Matrix{<:Real}; contains_reference = true, ncomponents = 25, scaling = "genetic drift")
 
 Perform PCA analysis on Eigenstrat data using SVD (Single value decomposition).
-Missing SNP values are imputed as mean values.
 
-Return a DataFrame where the first column contains individual IDs and the following
-the PCA coordinates, so that each individual is represented by a single row.
+This method does some computations in place to save memory.
+This changes the genomatrix.
 
-`genomatrix` is a genomatrix that was read by `read_eigenstrat_geno`.
+You can also chose if missing values in the genomatrix should be imputed.
+if `impute = true` the genomatrix is not changed.
+
+Return a `MulitvariateStats.PCA` that can be used to compute the
+PCA components of a genomatrix by calling `pca_components`.
+
+`geno` is a genomatrix that was read by `read_eigenstrat_geno`.
 Usually the matrix contains the number of reference alleles for each SNP
-and individual.
-
-`indframe` is a DataFrame that was read by 'read_eigenstrat_ind`.
-It contains data for the individuals in the Eigenstrat database.
+and individual. `geno` must be a valid matrix with no missing values
+or invariant markers. If you are not sure call `remove_invariant!(geno)` and
+`impute_missing(geno)` before this function.
 
 `ncomponents` is the maximum number of Eigenvalues for the PCA. Default
 is 25.
@@ -52,7 +89,7 @@ is 25.
 Standard is `genetic drift` like recommended by Nick Patterson in
 [Population Structure and Eigenanalysis](https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.0020190).
 
-`geno_contains_reference` describes if the genomatrix contains the number
+`contains_reference` describes if the genomatrix contains the number
 of reference alleles or derived alleles. Standard is `true` like documented
 in David Reichs's [Input File Formats](https://reich.hms.harvard.edu/software/InputFileFormats).
 This is also how Nick Patterson's
@@ -66,42 +103,30 @@ as described in
 assumes that the genomatrix contains the number of derived alleles.
 To stay compatible with the R package choose `geno_contains_reference = false`.
 """
-function pca(genomatrix::Matrix{UInt8}, indframe; ncomponents = 25, scaling = "genetic drift", geno_contains_reference = true)
+function pca!(geno::Matrix{<:Real}; contains_reference = true, ncomponents = 25, scaling = "genetic drift")
     if scaling != "z-score" && scaling != "genetic drift"
         throw("EigenstratFormat.pca: scaling must be z-score or genetic drift")
     end
 
-    nrow, ncol = size(genomatrix)
-    adjusted = impute_missing(genomatrix)    
+    nrow, ncol = size(geno)
+    adjusted::Matrix{Float64} = geno
 
-    # If genomatrix contains number of reference alleles
+    # If geno contains number of reference alleles
     # calculate number of derived alleles, assuming biallelic markers.
     # According to the Eigensoft manual the genomatrix contains the number
     # of reference alleles.
     # However, some researches seem to interpret this differently.
     # For compatibillity reasons we allow both options here.
-    if geno_contains_reference == true
+    if contains_reference == true
         for i in 1:nrow, j in 1:ncol
             # Calculate number of derived alleles in place to save memory.
             adjusted[i, j] = 2 - adjusted[i, j]
         end
     end
 
-    # Remove invariant markers by copying non-invariant markers in place
-    # into the old matrix.
-    count = 0
-    for i in 1:nrow
-        first = adjusted[i, 1]    
-        for j in 1:ncol
-            if adjusted[i, j] != first
-                count += 1
-                adjusted[count, :] = adjusted[i, :]
-                break
-            end
-        end
-    end
-    adjusted = adjusted[1:count, :]
-    nrow, ncol = size(adjusted)
+    # Remove invariant markers.
+    #adjusted = remove_invariant!(adjusted)
+    #nrow, ncol = size(adjusted)
 
     # Mean number of derived alleles and standard deviations.
     m = zeros(Float64, nrow)
@@ -124,12 +149,36 @@ function pca(genomatrix::Matrix{UInt8}, indframe; ncomponents = 25, scaling = "g
     end
 
     # Use MultivariateStats.jl for PCA.
-    M = fit(PCA, adjusted; maxoutdim = ncomponents)
-    coordinates = predict(M, adjusted)
-    co_cols = size(coordinates', 2)
-    colnames = vcat("ID", ["C$i" for i = 1:co_cols])
-    result_data = hcat(indframe[!, :ID], coordinates')
-    return DataFrame(result_data, colnames)
+    return fit(PCA, adjusted; maxoutdim = ncomponents)
 end
+
+"""
+    pca_components(geno::Matrix{<:Real}, sample_ids::Vector{AbstractString}, M::MultivariateStats.PCA)
+
+Return PCA components for all samples of a given genomatrix and `PCA M`.
+
+The result is a Dataframe which contains a sample ID followed by the PCA components
+in each row.
+
+`ID PC1 PC2 ... `
+"""
+function pca_components(geno::Matrix{<:Real}, sample_ids::Vector{<:AbstractString}, M::MultivariateStats.PCA)
+    components = predict(M, geno)
+    components = components'
+    _, ncol = size(components)
+    data = hcat(sample_ids, components)
+    names = vcat("ID", ["PC$i" for i = 1:ncol])
+    return DataFrame(data, names)
+end
+
+
+
+
+
+
+
+
+
+
 
 
