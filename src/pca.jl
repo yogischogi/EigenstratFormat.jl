@@ -2,11 +2,10 @@
     remove_invariant!(geno::Matrix{<:Real})
 
 Remove invariant markers from a genomatrix.
-Return a matrix that contains only valid markers.
+Return a view to the cahanged geno matrix that contains only valid markers.
 
-However, because the matrices can get very big the original matrix
-is changed in place and is no longer valid. This is ugly, I know,
-but I often ran out of memory testing this library.
+Because geno matrices can get very big the original matrix
+is changed in place and is no longer valid.
 
 `geno` is the matrix. Each row represents one single marker for multiple samples.
 """
@@ -17,9 +16,9 @@ function remove_invariant!(geno::Matrix{<:Real})
     nrow, ncol = size(geno)
     count = 0
     for i in 1:nrow
-        first = geno[i, 1]    
-        for j in 2:ncol
-            if geno[i, j] != first && geno[i, j] != missing_value
+        values = filter(x -> x != missing_value, geno[i, :])
+        for v in values
+            if v != values[1]
                 count += 1
                 geno[count, :] = geno[i, :]
                 break
@@ -101,13 +100,12 @@ However the R package
 as described in 
 [smartsnp, an r package for fast multivariate analyses of big genomic data](https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.13684)
 assumes that the genomatrix contains the number of derived alleles.
-To stay compatible with the R package choose `geno_contains_reference = false`.
+To stay compatible with the R package choose `contains_reference = false`.
 """
-function pca!(geno::Matrix{<:Real}; contains_reference = true, ncomponents = 25, scaling = "genetic drift")
+function pca!(geno::Matrix{Float64}; contains_reference = true, ncomponents = 25, scaling = "genetic drift")
     if scaling != "z-score" && scaling != "genetic drift"
         throw("EigenstratFormat.pca: scaling must be z-score or genetic drift")
     end
-
     nrow, ncol = size(geno)
     adjusted::Matrix{Float64} = geno
 
@@ -123,10 +121,6 @@ function pca!(geno::Matrix{<:Real}; contains_reference = true, ncomponents = 25,
             adjusted[i, j] = 2 - adjusted[i, j]
         end
     end
-
-    # Remove invariant markers.
-    #adjusted = remove_invariant!(adjusted)
-    #nrow, ncol = size(adjusted)
 
     # Mean number of derived alleles and standard deviations.
     m = zeros(Float64, nrow)
@@ -153,20 +147,20 @@ function pca!(geno::Matrix{<:Real}; contains_reference = true, ncomponents = 25,
 end
 
 """
-    pca_components(geno::Matrix{<:Real}, sample_ids::Vector{AbstractString}, M::MultivariateStats.PCA)
+    pca_coordinates(geno::Matrix{<:Real}, sample_ids::Vector{<:AbstractString}, M::MultivariateStats.PCA)
 
-Return PCA components for all samples of a given genomatrix and `PCA M`.
+Return PCA coordinates for all samples of a given genomatrix and `PCA M`.
 
-The result is a Dataframe which contains a sample ID followed by the PCA components
+The result is a Dataframe which contains a sample ID followed by the PCA coordinates
 in each row.
 
 `ID PC1 PC2 ... `
 """
-function pca_components(geno::Matrix{<:Real}, sample_ids::Vector{<:AbstractString}, M::MultivariateStats.PCA)
-    components = predict(M, geno)
-    components = components'
-    _, ncol = size(components)
-    data = hcat(sample_ids, components)
+function pca_coordinates(geno::Matrix{<:Real}, sample_ids::Vector{<:AbstractString}, M::MultivariateStats.PCA)
+    coordinates = predict(M, geno)
+    coordinates = coordinates'
+    _, ncol = size(coordinates)
+    data = hcat(sample_ids, coordinates)
     names = vcat("ID", ["PC$i" for i = 1:ncol])
     return DataFrame(data, names)
 end

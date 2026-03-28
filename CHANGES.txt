@@ -1,3 +1,8 @@
+2026-03-28
+- Added examples 02_hgdp.jl and 03_pca.jl.
+- Removed example aadr.jl because it got too complicated.
+- Small changes and fixes to PCA related functions.
+
 2026-03-27
 - massive changes to pca!()
 - Added pca_components().

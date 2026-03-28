@@ -1,6 +1,6 @@
 # Example: Extract data from the AADR database.
 #
-# This example shows how to extract data of modern day individuals
+# This example shows how to extract data of modern day individuals (HGDP)
 # from the AADR database. It should be easy to adjust it to your
 # own needs.
 #
@@ -27,13 +27,12 @@ const genofile = joinpath(basedir, "v62.0_HO_public.geno")
 const indfile = joinpath(basedir, "v62.0_HO_public.ind")
 const snpfile = joinpath(basedir, "v62.0_HO_public.snp")
 
-# Output files that will contain modern individuals.
-const indfileout = joinpath(basedir, "modern.ind")
-const snpfileout = joinpath(basedir, "modern.snp")
-const annofileout = joinpath(basedir, "modern.anno")
-const genofileout = joinpath(basedir, "modern.geno")
+# Output files for individuals from the HGDP project.
+const indfileout = joinpath(basedir, "HGDP.ind")
+const snpfileout = joinpath(basedir, "HGDP.snp")
+const annofileout = joinpath(basedir, "HGDP.anno")
+const genofileout = joinpath(basedir, "HGDP.geno")
 
-# Let's define some helper functions.
 
 # Extract all modern inndividuals from .ind file.
 function extract_modern_ind(indices::Vector{<:Integer}, infile, outfile)
@@ -57,28 +56,18 @@ function extract_modern_geno(indices::Vector{Int64}, nsnp, nind, genofile, indfi
     write_eigenstrat_geno(outfile, geno; ind_hash = indhash, snp_hash = snphash)
 end
 
-# Create a new database containing modern individuals.
-
-# Determine which samples are modern by checking the age.
-annotations = read_eigenstrat_anno(annofile)
-# Create a vector that contains true or false for each entry which's age == 0.
-modern = annotations[!, :("Date mean in BP in years before 1950 CE [OxCal mu for a direct radiocarbon date, and average of range for a contextual date]")] .== 0
-
-# Determine which samples are valid (not marked as "Ignore")
+# Determine which samples belong to the HGDP project.
 individuals = read_eigenstrat_ind(indfile)
-valid = .~startswith.(individuals[!, :Status], "Ignore")
-outlier = contains.(individuals[!, :Status], "outlier")
+is_valid = startswith.(individuals[!, :ID], "HGDP")
 
 # Create a vector of indices we can use to access the database.
 all_idxs = [i for i = 1:nrow(individuals)]
-hits = modern .& valid .& (.~outlier)
 # Filter index vector for all true entries in the hits vector.
-idxs = filter(i -> hits[i], all_idxs)
+idxs = filter(i -> is_valid[i], all_idxs)
 
-# In case the resulting database gets to large or computations
-# take to much time remove some indices.
-# This is also useful for testing a processing pipeline.
-# Here we select each tentth element.
+# Shrink database by selecting a subset of indices.
+# This is useful if the resulting database gets
+# too large or computations take too much time.
 idxs = [idxs[i] for i in 10:10:length(idxs)]
 
 # Use indices to create now .ind and .anno files.
@@ -94,9 +83,8 @@ nind = countlines(indfile)
 extract_modern_geno(idxs, nsnp, nind, genofile, indfile, snpfile, genofileout)
 
 # That's it! You should now have 4 new files:
-# modern.ind
-# modern.snp
-# modern.anno
-# modern.geno
-
+# HGDP.ind
+# HGDP.snp
+# HGDP.anno
+# HGDP.geno
 
