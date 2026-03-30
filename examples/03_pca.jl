@@ -25,7 +25,7 @@ genotypes = impute_missing(genotypes)
 m = pca!(genotypes)
 
 # Use m to get PCA coordinates for each sample.
-coordinates = pca_coordinates(genotypes, individuals[:, :ID], m)
+coordinates = pca_coordinates(m, genotypes, individuals[:, :ID])
 
 # Plot first two PCA coordinates using CairoMakie.
 scatter(coordinates[:, :PC1], coordinates[:, :PC2])

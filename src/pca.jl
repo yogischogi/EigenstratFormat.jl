@@ -147,7 +147,7 @@ function pca!(geno::Matrix{Float64}; contains_reference = true, ncomponents = 25
 end
 
 """
-    pca_coordinates(geno::Matrix{<:Real}, sample_ids::Vector{<:AbstractString}, M::MultivariateStats.PCA)
+    pca_coordinates(M::MultivariateStats.PCA, geno::Matrix{<:Real}, sample_ids::Vector{<:AbstractString})
 
 Return PCA coordinates for all samples of a given genomatrix and `PCA M`.
 
@@ -156,7 +156,7 @@ in each row.
 
 `ID PC1 PC2 ... `
 """
-function pca_coordinates(geno::Matrix{<:Real}, sample_ids::Vector{<:AbstractString}, M::MultivariateStats.PCA)
+function pca_coordinates(M::MultivariateStats.PCA, geno::Matrix{<:Real}, sample_ids::Vector{<:AbstractString})
     coordinates = predict(M, geno)
     coordinates = coordinates'
     _, ncol = size(coordinates)

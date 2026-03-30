@@ -1,3 +1,7 @@
+2026-03-30
+- Changed parameter order in pca_coordinates() to stay
+  consistent with MultivariateStats.jl.
+
 2026-03-28
 - Added examples 02_hgdp.jl and 03_pca.jl.
 - Removed example aadr.jl because it got too complicated.
