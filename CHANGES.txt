@@ -1,3 +1,7 @@
+2026-04-03
+- Added example 04_pca_nice.jl that creates a better looking PCA plot.
+- Example 03_pca.jl now saves PCA coordinates to a file.
+
 2026-03-30
 - Changed parameter order in pca_coordinates() to stay
   consistent with MultivariateStats.jl.

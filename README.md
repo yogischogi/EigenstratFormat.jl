@@ -16,3 +16,7 @@ and in more detail in the [Eigensoft package](https://github.com/DReichLab/EIG).
 - [DNA samples](https://reich.hms.harvard.edu/datasets) from single papers at David Reich's laboratory.
 - [Allen Ancient DNA Resource (AADR)](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/FFIDCW) 
 
+![pcaplot.png](pcaplot.png)
+
+A PCA plot using modern human DNA samples.
+

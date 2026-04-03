@@ -28,6 +28,7 @@ After that you may want to take a look at the
 - `01_files.jl` demonstrates basic file operations.
 - `02_hgdp.jl` shows how to extract samples from the AADR database.
 - `03_pca.jl` performs a PCA and creates a simple PCA plot.
+- `04_pca_nice.jl` create a nice looking PCA plot with colored markers and a legend.
 
 
 ## Human DNA samples

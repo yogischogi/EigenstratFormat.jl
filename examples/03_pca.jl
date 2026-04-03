@@ -1,6 +1,6 @@
 # Example: Make a simple PCA (Principal Component Analysis).
 
-using CairoMakie, EigenstratFormat, DataFrames, Statistics
+using CairoMakie, CSV, EigenstratFormat, DataFrames, Statistics
 
 # Database that was created in the 02_aadr.jl example.
 # ADJUST basedir TO THE PATH ON YOUR COMPUTER.
@@ -9,6 +9,7 @@ const indfile = joinpath(basedir, "HGDP.ind")
 const snpfile = joinpath(basedir, "HGDP.snp")
 const annofile = joinpath(basedir, "HGDP.anno")
 const genofile = joinpath(basedir, "HGDP.geno")
+const coordinatesfile = joinpath(basedir, "HGDP_coordinates.csv")
 
 # Load database.
 snps = read_eigenstrat_snp(snpfile)
@@ -26,6 +27,10 @@ m = pca!(genotypes)
 
 # Use m to get PCA coordinates for each sample.
 coordinates = pca_coordinates(m, genotypes, individuals[:, :ID])
+
+# Write coordinates to file.
+# Not needed here but useful for the next example.
+CSV.write(coordinatesfile, coordinates)
 
 # Plot first two PCA coordinates using CairoMakie.
 scatter(coordinates[:, :PC1], coordinates[:, :PC2])
