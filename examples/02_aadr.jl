@@ -19,19 +19,20 @@
 
 using CSV, DataFrames, EigenstratFormat
 
-# Input files.
-# ADJUST basedir TO THE PATH ON YOUR COMPUTER.
-const basedir = normpath("/home/dirk/Geno/AADR/database/")
-const annofile = joinpath(basedir, "v62.0_HO_public.anno")
-const genofile = joinpath(basedir, "v62.0_HO_public.geno")
-const indfile = joinpath(basedir, "v62.0_HO_public.ind")
-const snpfile = joinpath(basedir, "v62.0_HO_public.snp")
+# ADJUST basedir TO THE PATH ON YOUR COMPUTER!
+basedir = normpath("/home/dirk/Geno/AADR/database/")
+
+# Filenames of the database.
+annofile = joinpath(basedir, "v62.0_HO_public.anno")
+genofile = joinpath(basedir, "v62.0_HO_public.geno")
+indfile = joinpath(basedir, "v62.0_HO_public.ind")
+snpfile = joinpath(basedir, "v62.0_HO_public.snp")
 
 # Output files for individuals from the HGDP project.
-const indfileout = joinpath(basedir, "HGDP.ind")
-const snpfileout = joinpath(basedir, "HGDP.snp")
-const annofileout = joinpath(basedir, "HGDP.anno")
-const genofileout = joinpath(basedir, "HGDP.geno")
+indfileout = joinpath(basedir, "HGDP.ind")
+snpfileout = joinpath(basedir, "HGDP.snp")
+annofileout = joinpath(basedir, "HGDP.anno")
+genofileout = joinpath(basedir, "HGDP.geno")
 
 
 # Extract all modern inndividuals from .ind file.
@@ -49,8 +50,8 @@ function extract_modern_anno(indices::Vector{<:Integer}, infile, outfile)
 end
 
 # Extract genotypes of modern individuals.
-function extract_modern_geno(indices::Vector{Int64}, nsnp, nind, genofile, indfile, snpfile, outfile)
-    geno = read_eigenstrat_geno(genofile, nsnp, nind; ind_idx = indices)
+function extract_modern_geno(indices::Vector{Int64}, genofile, indfile, snpfile, outfile)
+    geno = read_eigenstrat_geno(genofile; ind_idxs = indices)
     indhash = hash_ids(indfile)
     snphash = hash_ids(snpfile)
     write_eigenstrat_geno(outfile, geno; ind_hash = indhash, snp_hash = snphash)
@@ -80,7 +81,7 @@ cp(snpfile, snpfileout; force = true)
 
 nsnp = countlines(snpfile)
 nind = countlines(indfile)
-extract_modern_geno(idxs, nsnp, nind, genofile, indfile, snpfile, genofileout)
+extract_modern_geno(idxs, genofile, indfile, snpfile, genofileout)
 
 # That's it! You should now have 4 new files:
 # HGDP.ind

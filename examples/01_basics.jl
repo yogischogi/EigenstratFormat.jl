@@ -21,15 +21,14 @@
 #    Lower Rhine-Meuse paper including the database files.
 # 3. Adjust the following file paths.
 
-# Genotypes
-const genopath = normpath("Lower Rhine-Meuse paper/LowerRhine.geno")
-# Information about individuals
-const indpath = normpath("Lower Rhine-Meuse paper/LowerRhine.ind")
-# SNP information
-const snppath = normpath("Lower Rhine-Meuse paper/LowerRhine.snp")
-
-
 using DataFrames, EigenstratFormat
+
+# Genotypes
+genopath = normpath("Lower Rhine-Meuse paper/LowerRhine.geno")
+# Information about individuals
+indpath = normpath("Lower Rhine-Meuse paper/LowerRhine.ind")
+# SNP information
+snppath = normpath("Lower Rhine-Meuse paper/LowerRhine.snp")
 
 """
     read_eigenstrat_database(genofile, indfile, snpfile)
@@ -40,7 +39,7 @@ function read_eigenstrat_database(genofile, indfile, snpfile)
     # Read database files.
     snps = read_eigenstrat_snp(snpfile)
     individuals = read_eigenstrat_ind(indfile) 
-    genotypes = read_eigenstrat_geno(genofile, nrow(snps), nrow(individuals))
+    genotypes = read_eigenstrat_geno(genofile)
     
     # Show some content on the screen.
     println("SNPs")
@@ -69,7 +68,7 @@ function reduce_eigenstrat_database(genofile, indfile, snpfile)
     snps = read_eigenstrat_snp(snpfile)
     individuals = read_eigenstrat_ind(indfile)
     indices = 4:4:nrow(individuals)
-    genotypes = read_eigenstrat_geno(genofile, nrow(snps), nrow(individuals); ind_idx = [i for i in indices])
+    genotypes = read_eigenstrat_geno(genofile; ind_idxs = [i for i in indices])
 
     # Generate temporary filenames for the reduced database.
     # These files are deleted automatically when the Julia interpreter exits.

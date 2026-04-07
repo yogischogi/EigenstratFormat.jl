@@ -3,10 +3,12 @@
 using CairoMakie, CSV, DataFrames, EigenstratFormat
 
 # ADJUST basedir TO THE PATH ON YOUR COMPUTER.
-const basedir = normpath("/home/dirk/Geno/AADR/database/")
-const indfile = joinpath(basedir, "HGDP.ind")
+basedir = normpath("/home/dirk/Geno/AADR/database/")
+
+indfile = joinpath(basedir, "HGDP.ind")
+
 # This file was created in example 03_pca.jl
-const coordinatesfile = joinpath(basedir, "HGDP_coordinates.csv")
+coordinatesfile = joinpath(basedir, "HGDP_coordinates.csv")
 
 """
     _getmarkers(n::Integer; smile = false)

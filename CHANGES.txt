@@ -1,3 +1,11 @@
+2026-04-04
+- read_eigenstrat_geno() has simplified parameters.
+  It is no longer necessary to specify nind and nsnp.
+  ind_idx has been renamed to ind_idxs.
+- read_eigenstrat_geno() also reads transposed geno format TGENO.
+- Example 02_hgdp.jl renamed to 02_aadr.jl
+- Updated examples.
+
 2026-04-03
 - Added example 04_pca_nice.jl that creates a better looking PCA plot.
 - Example 03_pca.jl now saves PCA coordinates to a file.

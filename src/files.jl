@@ -1,5 +1,8 @@
 # Functions to read and write Eigenstrat data.
 
+# Header size of .geno files.
+const geno_header_size = 48
+
 """
     _hashit(sequence::String)
 
@@ -79,11 +82,11 @@ end
 """
     _alleles(bytes::Vector{UInt8}, idx::Int64)
 
-Return the number of variant alleles for a specified individual.
+Return the number of variant alleles at a specified position.
 
 `bytes`: Row of bytes that encode an SNP for all individuals.
 
-`idx`: Index of the individual.
+`idx`: Position index.
 """
 function _alleles(bytes::Vector{UInt8}, idx::Int64)
     # Find byte that encodes the specified SNP.
@@ -98,11 +101,11 @@ function _alleles(bytes::Vector{UInt8}, idx::Int64)
 end
 
 """
-    read_eigenstrat_geno(
+    _read_eigenstrat_geno(
         genofile::AbstractString,
         nsnp::Int64,
         nind::Int64;
-        ind_idx::Vector{Int64} = [i for i = 1:nind]
+        ind_idxs::Vector{Int64} = [i for i = 1:nind]
     )
 
 Read a genofile in PackedAncestryMap format. The file must be unzipped.
@@ -113,36 +116,25 @@ Read a genofile in PackedAncestryMap format. The file must be unzipped.
 
 `nind`: number of individuals listed in .ind file.
 
-`ind_idx`: Indices of individuals that should be read from the file.
+`ind_idxs`: Indices of individuals that should be read from the file.
 
-XXX Check for comment lines in .snp and .ind files.
-
-File description: File header starts with GENO or TGENO (transposed GENO).
-So far files in the AADR archive seem to be GENO. So this method
-does not support the transposed TGENO format.
-
-The text format contains one line per genotype:
-
-SNP_ID  Sample_ID   Number_of_variant_alleles
-
-The packed format:
+File description: File header must start with GENO.
 
 Each SNP entry has 2 bits: 0, 1, 2, 3=missing, that denote the number
 of variant alleles as described at [David Reich's laboratory](https://reich.hms.harvard.edu/software/InputFileFormats).
 """
-function read_eigenstrat_geno(
+function _read_eigenstrat_geno(
     genofile::AbstractString,
     nsnp::Int64,
     nind::Int64;
-    ind_idx::Vector{Int64} = [i for i = 1:nind]
+    ind_idxs::Vector{Int64} = [i for i = 1:nind]
 )
-    result = zeros(UInt8, nsnp, length(ind_idx))
+    result = zeros(UInt8, nsnp, length(ind_idxs))
 
     # 1 SNP value for 4 individuals is encoded as 1 byte.
     bytes_per_line = Int64(ceil(nind / 4))
-    # Header size must be at least 48 bytes.
-    if bytes_per_line < 48
-        bytes_per_line = 48
+    if bytes_per_line < geno_header_size
+        bytes_per_line = geno_header_size
     end
 
     # Read file line by line and extract SNP alleles for all individuals.
@@ -153,10 +145,123 @@ function read_eigenstrat_geno(
         for snp = 1:nsnp
             read!(io, buffer)
             # Extract alleles for all individuals.
-            for i in 1:length(ind_idx)
-                result[snp, i] = _alleles(buffer, ind_idx[i])
+            for i in 1:length(ind_idxs)
+                result[snp, i] = _alleles(buffer, ind_idxs[i])
             end
         end
+    end
+    return result
+end
+
+"""
+    _read_eigenstrat_tgeno(
+        genofile::AbstractString,
+        nsnp::Int64,
+        nind::Int64;
+        ind_idxs::Vector{Int64} = [i for i = 1:nind]
+    )
+
+Read a genofile in TGENO format. The file must be unzipped.
+
+`genofile`: filename
+
+`nsnp`: number of SNPs listed in .snp file.
+
+`nind`: number of individuals listed in .ind file.
+
+`ind_idxs`: Indices of individuals that should be read from the file.
+
+File description: File header must start with TGENO.
+Each row contains data for 1 individual.
+
+Each SNP entry has 2 bits: 0, 1, 2, 3=missing, that denote the number
+of variant alleles as described at [David Reich's laboratory](https://reich.hms.harvard.edu/software/InputFileFormats).
+"""
+function _read_eigenstrat_tgeno(
+    genofile::AbstractString,
+    nsnp::Int64,
+    nind::Int64;
+    ind_idxs::Vector{Int64} = [i for i = 1:nind]
+)
+    result = zeros(UInt8, nsnp, length(ind_idxs))
+
+    # Each line contains all SNPs.
+    # Each SNP is encoded in 2 bits.
+    bytes_per_line = Int64(ceil(nsnp / 4))
+
+    # Read file line by line and extract SNP alleles for all individuals.
+    open(genofile) do io
+        buffer = Array{UInt8}(undef, bytes_per_line)
+        for (i, idx) in enumerate(ind_idxs)
+            # Calculate file position of individual.
+            # The first line is the header and must be skipped.
+            pos = geno_header_size + bytes_per_line * (idx - 1)
+            seek(io, pos)
+            read!(io, buffer)
+            # Read all SNP values for individual.
+            for snp = 1:nsnp
+                result[snp, i] = _alleles(buffer, snp)
+            end
+        end
+    end
+    return result
+end
+
+"""
+    read_eigenstrat_geno(genofile::AbstractString; ind_idxs = Int64[])
+
+Read a genofile in GENO or TGENO PackedAncestryMap format. The file must be unzipped.
+
+`genofile`: filename
+
+`ind_idxs`: Indices of individuals that should be read from the file.
+            If this parameter is not supplied the whole file is read.
+
+File description: File header must start with GENO or TGENO.
+
+Each SNP entry has 2 bits: 0, 1, 2, 3=missing, that denote the number
+of variant alleles as described at [David Reich's laboratory](https://reich.hms.harvard.edu/software/InputFileFormats).
+
+Most detailed description of the file format I found so far is
+in the
+[convertf documentation](https://github.com/DReichLab/AdmixTools/blob/master/convertf/README)
+and in the file
+[geno.h](https://github.com/DReichLab/AdmixTools/blob/master/src/geno.h).
+"""
+function read_eigenstrat_geno(genofile::AbstractString; ind_idxs = Int64[])
+    local result::Matrix{UInt8}
+    local isgeno::Bool
+
+    # Read header.
+    header = String[]
+    open(genofile) do io
+        buffer = Array{UInt8}(undef, geno_header_size)
+        read!(io, buffer)
+        header = String(buffer)
+        if startswith(header, "GENO")
+            isgeno = true
+        elseif startswith(header, "TGENO")
+            isgeno = false
+        else
+            throw("Unknown file format")
+        end
+    end
+
+    # Get number of individuals and SNPs.
+    fields = split(header)
+    nind = parse(Int64, fields[2])
+    nsnp = parse(Int64, fields[3])
+
+    # Set idxs if not specified.
+    if length(ind_idxs) == 0
+        ind_idxs = [i for i = 1:nind]
+    end
+
+    # Read geno or transposed geno file.
+    if isgeno == true
+        result = _read_eigenstrat_geno(genofile, nsnp, nind; ind_idxs = ind_idxs)
+    else
+        result = _read_eigenstrat_tgeno(genofile, nsnp, nind; ind_idxs = ind_idxs)
     end
     return result
 end
@@ -185,12 +290,10 @@ function write_eigenstrat_geno(
 
     # 4 columns are encoded as 1 byte.
     bytes_per_line = Int64(ceil(cols / 4))
-    # Header size must be at least 48 bytes.
-    minlen = 48
     fillbytes = zeros(UInt8, 0)
-    if bytes_per_line < minlen
-        fillbytes = zeros(UInt8, minlen - bytes_per_line)
-        bytes_per_line = minlen
+    if bytes_per_line < geno_header_size
+        fillbytes = zeros(UInt8, geno_header_size - bytes_per_line)
+        bytes_per_line = geno_header_size
     end
 
     # Create header.
@@ -452,9 +555,8 @@ function add_individual(
 
     # 1 SNP value for 4 individuals is encoded as 1 byte.
     bytes_per_line = Int64(ceil(nind / 4))
-    # Header size must be at least 48 bytes.
-    if bytes_per_line < 48
-        bytes_per_line = 48
+    if bytes_per_line < geno_header_size
+        bytes_per_line = geno_header_size
     end
 
     # The output must contain enough space for 1 extra individual.
