@@ -334,7 +334,7 @@ function write_eigenstrat_geno(
 end
 
 """
-    read_snp_file(filename::AbstractString)
+    read_vendor_data(filename::AbstractString)
 
 Read file with autosomal results from FTDNA Family Finder, My Heritage
 or LivingDNA. Should also work with 24andMe files but not tested.
@@ -343,7 +343,7 @@ Return a `DataFrame` containing the columns:
 
 rsid  chromosome  position  genotype
 """
-function read_snp_file(filename::AbstractString)
+function read_vendor_data(filename::AbstractString)
     snptable = CSV.read(filename, DataFrame; header = ["rsid", "chromosome", "position", "genotype"],
         types = [String, String, String, String], comment = "#")
     # Drop header line (MyHeritage, 23andMe).
@@ -469,7 +469,7 @@ function _encode(
         n = 0x0
     end
 
-    # Check for invalid and triallelic markers.
+    # Check for invalid markers.
     if (genotype[1] != reference_snp[1]) && (genotype[2] != reference_snp[1]) &&
        (genotype[1] != reference_snp[2]) && (genotype[2] != reference_snp[2])
         n = 0x3
@@ -490,25 +490,26 @@ function _encode(
 end
 
 """
-    add_individual(
-        inprefix::AbstractString,
-        outprefix::AbstractString,
-        ind_snp_file::AbstractString,
+    function add_individual(
+        database_in_prefix::AbstractString,
+        database_out_prefix::AbstractString,
+        vendor_file::AbstractString,
         id::AbstractString;
         gender = "U",
-        status = "Control"
+        status = "Control",
+        method = "intersect"
     )
 
 Add an individual to a database in Eigenstrat format. 
 
-The SNPs in the database remain untouched. If the individual displayes SNPs
-that are not listed in the database or multiallelic ones those SNPs are removed.
+XXX Currently the genofile of the input database must be in GENO format, not TGENO.
 
-`inprefix`: Prefix of the input database.
+`database_in_prefix:`: Prefix of the input database. This is the full path without
+the file suffix.
 
-`outprefix`: Prefix of the output database.
+`database_out_prefix`: Prefix of the output database.
 
-`ind_snp_file`: File containing SNP results for the individual. This should
+`vendor_file`: File containing SNP results for the individual. This should
     work with files from Family Tree DNA Family Finder, MyHeritage, LivingDNA
     and 23andMe.
 
@@ -516,41 +517,68 @@ that are not listed in the database or multiallelic ones those SNPs are removed.
 
 `gender`: U, F or M (Unknown, Female or Male)
 
-`status`: Control, Case or a population label.
+`status`: Control, Case or a population label. If you want to compare a single
+individual to all other samples I recommend using the individual's name here.
+This way the individal is easy to spot in a PCA plot
+
+`method`: Determines how vendor SNPs are added to the database. May be `add` or `intersect`.
+If there is little overlap between the database and thh SNPs tested by a vendor
+set `method = "intersect"`. This is also the default value.
+
+if `method = "add"` the SNPs in the database remain untouched. 
+If the individual displays SNPs that are not listed in the database 
+those SNPs are removed.
 """
 function add_individual(
-    inprefix::AbstractString,
-    outprefix::AbstractString,
-    ind_snp_file::AbstractString,
+    database_in_prefix::AbstractString,
+    database_out_prefix::AbstractString,
+    vendor_file::AbstractString,
     id::AbstractString;
     gender = "U",
-    status = "Control"
+    status = "Control",
+    method = "intersect"
 )
+    if method != "intersect" && method != "add"
+        throw("""add_individual(): Parameter "method" must be "add" or "intersect".""")
+    end
+
     indsuffix = ".ind"
     snpsuffix = ".snp"
     genosuffix = ".geno"
-    snps = read_eigenstrat_snp(inprefix * snpsuffix)
+    snps = read_eigenstrat_snp(database_in_prefix * snpsuffix)
     nsnp = nrow(snps)
-    inds = read_eigenstrat_ind(inprefix * indsuffix)
+    inds = read_eigenstrat_ind(database_in_prefix * indsuffix)
     nind = nrow(inds)
 
     # Write .ind file.
     push!(inds, [id, gender, status])
-    write_eigenstrat_ind(outprefix * indsuffix, inds)
-    ind_hash = hash_ids(outprefix * indsuffix)
+    write_eigenstrat_ind(database_out_prefix * indsuffix, inds)
+    ind_hash = hash_ids(database_out_prefix * indsuffix)
 
-    # .snp file remains untouched.
-    write_eigenstrat_snp(outprefix * snpsuffix, snps)
-    snp_hash = hash_ids(outprefix * snpsuffix)
+    # Read vendor SNPs and intersect with database.
+    vendor_snps = read_vendor_data(vendor_file)
+    vendor_set = Set(vendor_snps.rsid)
+    idxs = [i for i = 1:nsnp]
+    if method == "intersect"
+        idxs = filter(i -> snps.rsid[i] in vendor_set, idxs)
+    end
+    idxs_set = Set(idxs)
+
+    # Write .snp file.
+    write_eigenstrat_snp(database_out_prefix * snpsuffix, snps[idxs, :])
+    snp_hash = hash_ids(database_out_prefix * snpsuffix)
 
     # Geno file.
 
-    # Put individual's SNPs into dictionary.
-    ind_snps = read_snp_file(ind_snp_file)
     # Put individual's SNPs into a Dictionary.
     ind_dict = Dict{String, String}()
-    for snp in eachrow(ind_snps)
-        ind_dict[snp.rsid] = snp.genotype
+    for snp in eachrow(vendor_snps)
+        g = snp.genotype
+        # Check for missing data.
+        if length(g) < 2
+            g = g * "-"
+        end
+        ind_dict[snp.rsid] = g
     end
 
     # 1 SNP value for 4 individuals is encoded as 1 byte.
@@ -567,8 +595,8 @@ function add_individual(
     end
 
     # Read file line by line, add SNP for individual and write to outfile.
-    open(inprefix * genosuffix) do infile
-        open(outprefix * genosuffix, create = true, write = true) do outfile
+    open(database_in_prefix * genosuffix) do infile
+        open(database_out_prefix * genosuffix, create = true, write = true) do outfile
             inbuffer = Array{UInt8}(undef, bytes_per_line)
             # Skip first line because it is a header.
             read!(infile, inbuffer)
@@ -577,38 +605,40 @@ function add_individual(
             shash = string(snp_hash, base = 16)
             outbuf = zeros(UInt8, out_bytes_per_line)
             cols = nind + 1
-            header = Array{UInt8}("GENO $cols $nsnp $ihash $shash")
+            rows = length(idxs)
+            header = Array{UInt8}("GENO $cols $rows $ihash $shash")
             outbuf[1: length(header)] = header
             write(outfile, outbuf)
             flush(outfile)
             outbuf .= 0
-            
+
             # Write SNPs.
             for i = 1:nsnp
                 # Copy input row to output row.
                 read!(infile, inbuffer)
-                outbuf[1:bytes_per_line] = inbuffer
-
-                # Add individual's SNP value.
-                pos = Int64(ceil((nind + 1) / 4))
-                byte = outbuf[pos]
-                bitpair_no = nind % 4
-                rsid = snps.rsid[i]
-                reference = (snps.allele1[i][1], snps.allele2[i][1])
-                if haskey(ind_dict, rsid)
-                    alleles = ind_dict[rsid]
-                    genotype = (alleles[1], alleles[2])
-                    byte = _encode(genotype, byte, bitpair_no, reference)
-                else
-                    # missing genotype
-                    genotype = ('-', '-')
-                    byte = _encode(genotype, byte, bitpair_no, reference)
+                if i in idxs_set
+                    outbuf[1:bytes_per_line] = inbuffer
+                    # Add individual's SNP value.
+                    pos = Int64(ceil((nind + 1) / 4))
+                    byte = outbuf[pos]
+                    bitpair_no = nind % 4
+                    rsid = snps.rsid[i]
+                    reference = (snps.allele1[i][1], snps.allele2[i][1])
+                    if haskey(ind_dict, rsid)
+                        alleles = ind_dict[rsid]
+                        genotype = (alleles[1], alleles[2])
+                        byte = _encode(genotype, byte, bitpair_no, reference)
+                    else
+                        # missing genotype
+                        genotype = ('-', '-')
+                        byte = _encode(genotype, byte, bitpair_no, reference)
+                    end
+                    outbuf[pos]  = byte
+                    # Write to file.
+                    write(outfile, outbuf)
+                    flush(outfile)
+                    outbuf .= 0
                 end
-                outbuf[pos]  = byte
-                # Write to file.
-                write(outfile, outbuf)
-                flush(outfile)
-                outbuf .= 0
             end
         end
     end

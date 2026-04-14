@@ -1,64 +1,43 @@
+# Functions for PCA plots.
+
 """
-    remove_invariant!(geno::Matrix{<:Real})
+    getmarkers(n::Integer; smile = false)
 
-Remove invariant markers from a genomatrix.
-Return a view to the cahanged geno matrix that contains only valid markers.
+Create a set of n markers for a plot. If smile == true
+the last marker is a smiley.
 
-Because geno matrices can get very big the original matrix
-is changed in place and is no longer valid.
+Return a named tuple (markers, colors) that contains an array
+of markers and an array of colors for the plot.
 
-`geno` is the matrix. Each row represents one single marker for multiple samples.
+The number of markers is limited to 17 (18 including the smiley)
+and 9 different colors.
 """
-function remove_invariant!(geno::Matrix{<:Real})
-    # Remove invariant markers by copying non-invariant markers in place
-    # into the old matrix.
-    missing_value = 3
-    nrow, ncol = size(geno)
-    count = 0
-    for i in 1:nrow
-        values = filter(x -> x != missing_value, geno[i, :])
-        for v in values
-            if v != values[1]
-                count += 1
-                geno[count, :] = geno[i, :]
-                break
-            end
-        end
+function getmarkers(n::Integer; smile = false)
+    markers = [:circle, :rect, :diamond, :hexagon, :cross,
+        :xcross, :utriangle, :dtriangle, :ltriangle, :rtriangle,
+        :pentagon, :star4, :star5, :star6, :star8,
+        :vline, :hline]
+    smiley = '😄'
+
+    colors = [:grey0, :green1, :blue, :chocolate, :cyan3,
+        :red, :fuchsia, :orange, :darkred]
+
+    # Calculate markers and colors.
+    plotmarkers = []
+    plotcolors = []
+    for i in 1:n
+        j = i % length(markers) + 1
+        push!(plotmarkers, markers[j])
+        k = i % length(colors) + 1
+        push!(plotcolors, colors[k])
     end
-    return geno[1:count, :]
-end
 
-"""
-    impute_missing(genomatrix::Matrix{<:Real})
-
-Impute missing values by replacing them with mean values.
-
-Return a Matrix{Float64}.
-
-It is assumed that all SNPs are biallelic.
-This function can really eat up lots of memory because the computation
-is not done in place and the result is a Float64 matrix.
-Maybe we should stay with UInt8 and use rounded values for missing alleles?
-
-`geno` contains the number of reference (or derived) alleles for each sample and SNP.
-Each row represents one SNP. Each sample is represented by a column.
-"""
-function impute_missing(geno::Matrix{<:Real})
-    missing_value = 3
-    nrow, ncol = size(geno)
-    result = Matrix{Float64}(undef, nrow, ncol) 
-    for i in 1:nrow
-        # Compute mean for existing values.
-        m = mean(filter(x -> x != missing_value, geno[i, :]))
-        for j in 1:ncol
-            if geno[i, j] == missing_value
-                result[i, j] = m
-            else
-                result[i, j] = geno[i, j]
-            end
-        end
+    # Replace last element with a smiley.
+    if smile == true
+        pop!(plotmarkers)
+        push!(plotmarkers, smiley)        
     end
-    return result
+    return (markers = plotmarkers, colors = plotcolors)
 end
 
 """
@@ -87,40 +66,13 @@ is 25.
 `scaling` scales the number of alleles acccording to different methods.
 Standard is `genetic drift` like recommended by Nick Patterson in
 [Population Structure and Eigenanalysis](https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.0020190).
-
-`contains_reference` describes if the genomatrix contains the number
-of reference alleles or derived alleles. Standard is `true` like documented
-in David Reichs's [Input File Formats](https://reich.hms.harvard.edu/software/InputFileFormats).
-This is also how Nick Patterson's
-[smartpca](https://github.com/DReichLab/EIG/tree/master/src/eigensrc)
-program interprets the file format.
-
-However the R package
-[smartsnp](https://github.com/ChristianHuber/smartsnp)
-as described in 
-[smartsnp, an r package for fast multivariate analyses of big genomic data](https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.13684)
-assumes that the genomatrix contains the number of derived alleles.
-To stay compatible with the R package choose `contains_reference = false`.
 """
-function pca!(geno::Matrix{Float64}; contains_reference = true, ncomponents = 25, scaling = "genetic drift")
+function pca!(geno::Matrix{Float64}; ncomponents = 25, scaling = "genetic drift")
     if scaling != "z-score" && scaling != "genetic drift"
         throw("EigenstratFormat.pca: scaling must be z-score or genetic drift")
     end
     nrow, ncol = size(geno)
     adjusted::Matrix{Float64} = geno
-
-    # If geno contains number of reference alleles
-    # calculate number of derived alleles, assuming biallelic markers.
-    # According to the Eigensoft manual the genomatrix contains the number
-    # of reference alleles.
-    # However, some researches seem to interpret this differently.
-    # For compatibillity reasons we allow both options here.
-    if contains_reference == true
-        for i in 1:nrow, j in 1:ncol
-            # Calculate number of derived alleles in place to save memory.
-            adjusted[i, j] = 2 - adjusted[i, j]
-        end
-    end
 
     # Mean number of derived alleles and standard deviations.
     m = zeros(Float64, nrow)

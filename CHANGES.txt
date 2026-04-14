@@ -1,3 +1,21 @@
+
+2026-04-14
+- Removed parameter contains_reference in pca!().
+  The parameter only existed for comparisons with other libraries.
+- read_vendor_data() also handles missing results.
+- add_individual() now supports intersection of SNPs.
+- Added distance() to calculate the distance between genotypes.
+- read_snp_file() renamed to read_vendor_data().
+
+2026-04-10
+- impute_missing now also works for a selection of individuals
+  allowing population-wise imputations.
+- Added impute_missing!() so that imputation can be performed
+  using smaller data types like Float16 to save memory.
+- Simplified example 04_pca_nice.jl.
+- Added population_idxs()
+- Added getmarkers() to create markers for PCA plots.
+
 2026-04-04
 - read_eigenstrat_geno() has simplified parameters.
   It is no longer necessary to specify nind and nsnp.
