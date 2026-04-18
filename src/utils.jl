@@ -14,7 +14,6 @@ is changed in place and is no longer valid.
 function remove_invariant!(geno::Matrix{<:Real})
     # Remove invariant markers by copying non-invariant markers in place
     # into the old matrix.
-    missing_value = 3
     nrow, ncol = size(geno)
     count = 0
     for i in 1:nrow
@@ -56,7 +55,6 @@ population-wise imputations. The this is not the case all samples are used
 for the imputation.
 """
 function impute_missing!(geno::Matrix{<:AbstractFloat}; ind_idxs = Int64[])
-    missing_value = 3
     # Minimum number of values for ind_idxs imputation.
     min_values = 5
     nrow, ncol = size(geno)
@@ -133,7 +131,6 @@ In case of little overlap between the valid entries of both genotypes
 this function may produce significantly false results.
 """
 function distance(genotype1::Vector, genotype2::Vector)
-    missing_value = 3
     diffs = []
     for i in 1:length(genotype1)
         if genotype1[i] != missing_value && genotype2[i] != missing_value
@@ -144,6 +141,28 @@ function distance(genotype1::Vector, genotype2::Vector)
     approx = length(genotype1) / length(diffs) * sum(diffs)
     return sqrt(approx)
 end
+
+"""
+    coverage(genotype::Vector)
+
+Return the fraction of valid entries in the genotype.
+
+Ancient DNA is often significantly degraded. So it is worth
+to check the coverage. This may differ from the coverage value
+in the metadata because the genotypes are often filtered before
+use.
+"""
+function coverage(genotype::Vector)
+    valids = 0
+    for g in genotype
+        if g != missing_value
+            valids += 1
+        end
+    end
+    return valids / length(genotype)
+end
+
+
 
 
 

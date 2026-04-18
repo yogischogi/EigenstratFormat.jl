@@ -1,3 +1,8 @@
+2026-04-18
+- New example 06_genetic_distances.jl.
+- New example 05_add_sample.jl.
+- Nev function coverage() to determine the amount of valid
+  entries in a genotype.
 
 2026-04-14
 - Removed parameter contains_reference in pca!().

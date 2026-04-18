@@ -29,6 +29,10 @@ After that you may want to take a look at the
 - `02_aadr.jl` shows how to extract samples from the AADR database.
 - `03_pca.jl` performs a PCA and creates a simple PCA plot.
 - `04_pca_nice.jl` creates a nice looking PCA plot with colored markers and a legend.
+- `05_add_sample.jl` adds a sample to the AADR database using a file from a big DNA
+   testing company.
+- `06_genetic_distances.jl` calculates the genetic distances from one sample to
+   all other samples in the database.
 
 
 ## Human DNA samples
