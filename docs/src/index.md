@@ -25,14 +25,22 @@ julia> using EigenstratFormat
 After that you may want to take a look at the
 [code examples](https://github.com/yogischogi/EigenstratFormat.jl/tree/main/examples).
 
-- `01_files.jl` demonstrates basic file operations.
-- `02_aadr.jl` shows how to extract samples from the AADR database.
-- `03_pca.jl` performs a PCA and creates a simple PCA plot.
-- `04_pca_nice.jl` creates a nice looking PCA plot with colored markers and a legend.
-- `05_add_sample.jl` adds a sample to the AADR database using a file from a big DNA
-   testing company.
-- `06_genetic_distances.jl` calculates the genetic distances from one sample to
-   all other samples in the database.
+- [01_files.jl](https://github.com/yogischogi/EigenstratFormat.jl/blob/main/examples/01_basics.jl)
+  demonstrates basic file operations.
+- [02_aadr.jl](https://github.com/yogischogi/EigenstratFormat.jl/blob/main/examples/02_aadr.jl)
+  shows how to extract samples from the AADR database.
+- [03_pca.jl](https://github.com/yogischogi/EigenstratFormat.jl/blob/main/examples/03_pca.jl)
+  performs a PCA and creates a simple PCA plot.
+- [04_pca_nice.jl](https://github.com/yogischogi/EigenstratFormat.jl/blob/main/examples/04_pca_nice.jl)
+  creates a nice looking PCA plot with colored markers and a legend.
+- [05_add_sample.jl](https://github.com/yogischogi/EigenstratFormat.jl/blob/main/examples/05_add_sample.jl)
+  adds a sample to the AADR database using a file from a big DNA testing company.
+- [06_genetic_distances.jl](https://github.com/yogischogi/EigenstratFormat.jl/blob/main/examples/06_genetic_distances.jl)
+  calculates the genetic distances from one sample to all other samples in the database.
+- [07_poulation_distances.jl](https://github.com/yogischogi/EigenstratFormat.jl/blob/main/examples/07_poulation_distances.jl)
+  calculates population distances for a single individual.
+- [08_visualization.jl](https://github.com/yogischogi/EigenstratFormat.jl/blob/main/examples/08_visualization.jl)
+  visualizes the previously calculated genetic distances.
 
 
 ## Human DNA samples

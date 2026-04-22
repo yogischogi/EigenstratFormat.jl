@@ -1,3 +1,10 @@
+2026-04-22
+- New example 08_visualization.jl creates a plot to display the
+  previously calculated genetic distances.
+- New example 07_poulation_distances.jl for calculating population
+  distances for a single individual.
+- population_idxs(): Handles missing populations.
+
 2026-04-18
 - New example 06_genetic_distances.jl.
 - New example 05_add_sample.jl.

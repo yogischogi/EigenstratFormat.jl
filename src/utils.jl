@@ -103,18 +103,22 @@ to address individuals in the genomatrix properly.
 
 Often the `Status` field of the .ind file contains population names.
 """
-function population_idxs(population_names::Vector{<:AbstractString})
+function population_idxs(population_names::Vector{<:Union{AbstractString, Missing}})
     # A Dictionary that contains population names and a list of sample indices.
     result = Dict{String, Vector{Integer}}()
 
     # Create a Dictionary with population names.
     for p in population_names
-        push!(result, p => String[])
+        if !ismissing(p)
+            push!(result, p => String[])
+        end
     end
 
     # Fill population entries with sample indices.
     for i in 1:length(population_names)
-        push!(result[population_names[i]], i)
+        if !ismissing(population_names[i])
+            push!(result[population_names[i]], i)
+        end
     end
     return result
 end

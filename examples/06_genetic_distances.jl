@@ -48,8 +48,8 @@ result = DataFrame(
     coverage = Float64[],
     id = String[],
     age = Int64[], 
-    population = String[],
-    country = String[]
+    country = String[],
+    population = String[]
 )
 
 # Compare the last sample to all other individuals in the database.
@@ -72,7 +72,7 @@ for i in 1:cols
     # Filter samples.
     if c >= min_coverage && age >= 0
         d = distance(geno[:, cols], geno[:, i])
-        push!(result, [i, d, c, ind_id, age, population, country])
+        push!(result, [i, d, c, ind_id, age, country, population])
     end
 end
 sort!(result, :distance)
