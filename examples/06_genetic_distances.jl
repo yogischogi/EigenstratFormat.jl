@@ -32,7 +32,7 @@ ind = read_eigenstrat_ind(indfile)
 # Read full information about individuals from the anno file
 # and create an index for faster access.
 anno = read_eigenstrat_anno(annofile)
-anno_idx = Dict{String, Int64}()
+anno_idx = Dict{String,Int64}()
 for (i, id) in enumerate(anno[:, anno_id_col])
     anno_idx[id] = i
 end
@@ -47,13 +47,13 @@ result = DataFrame(
     distance = Float64[],
     coverage = Float64[],
     id = String[],
-    age = Int64[], 
+    age = Int64[],
     country = String[],
-    population = String[]
+    population = String[],
 )
 
 # Compare the last sample to all other individuals in the database.
-for i in 1:cols
+for i = 1:cols
     age = 0
     anno_id = ""
     country = ""
@@ -80,4 +80,3 @@ CSV.write(resultfile, result)
 
 # Now you should have a nice table that can easily be opened with any
 # spreadsheet program.
-

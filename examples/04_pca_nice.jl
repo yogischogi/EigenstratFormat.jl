@@ -27,7 +27,8 @@ coordinates = DataFrame(CSV.File(coordinatesfile))
 
 # Plot populations.
 f = Figure()
-ax = Axis(f[1, 1],
+ax = Axis(
+    f[1, 1],
     title = "PCA coordinates of modern humans",
     xlabel = "PC1",
     ylabel = "PC2",
@@ -47,7 +48,9 @@ for (i, pop_name) in enumerate(keys(pop_indices))
     scatter!(ax, pc1, pc2, label = pop_name, marker = m.markers[i], color = m.colors[i])
 end
 # Add legend to plot.
-marker_elements = [MarkerElement(marker = m.markers[i], color = m.colors[i]) for i = 1:length(pop_indices)]
+marker_elements = [
+    MarkerElement(marker = m.markers[i], color = m.colors[i]) for i = 1:length(pop_indices)
+]
 names = [pop_names[i] for i = 1:length(pop_indices)]
 Legend(f[1, 2], marker_elements, names)
 f
@@ -55,5 +58,3 @@ f
 # at least since the publication of the 1,000 genomes project.
 # http://massgenomics.org/2012/11/human-genetic-variation-1000-genomes.html
 # https://www.nature.com/articles/nature11632
-
-

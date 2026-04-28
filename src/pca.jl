@@ -13,19 +13,33 @@ The number of markers is limited to 17 (18 including the smiley)
 and 9 different colors.
 """
 function getmarkers(n::Integer; smile = false)
-    markers = [:circle, :rect, :diamond, :hexagon, :cross,
-        :xcross, :utriangle, :dtriangle, :ltriangle, :rtriangle,
-        :pentagon, :star4, :star5, :star6, :star8,
-        :vline, :hline]
+    markers = [
+        :circle,
+        :rect,
+        :diamond,
+        :hexagon,
+        :cross,
+        :xcross,
+        :utriangle,
+        :dtriangle,
+        :ltriangle,
+        :rtriangle,
+        :pentagon,
+        :star4,
+        :star5,
+        :star6,
+        :star8,
+        :vline,
+        :hline,
+    ]
     smiley = '😄'
 
-    colors = [:grey0, :green1, :blue, :chocolate, :cyan3,
-        :red, :fuchsia, :orange, :darkred]
+    colors = [:grey0, :green1, :blue, :chocolate, :cyan3, :red, :fuchsia, :orange, :darkred]
 
     # Calculate markers and colors.
     plotmarkers = []
     plotcolors = []
-    for i in 1:n
+    for i = 1:n
         j = i % length(markers) + 1
         push!(plotmarkers, markers[j])
         k = i % length(colors) + 1
@@ -35,7 +49,7 @@ function getmarkers(n::Integer; smile = false)
     # Replace last element with a smiley.
     if smile == true
         pop!(plotmarkers)
-        push!(plotmarkers, smiley)        
+        push!(plotmarkers, smiley)
     end
     return (markers = plotmarkers, colors = plotcolors)
 end
@@ -76,21 +90,21 @@ function pca!(geno::Matrix{Float64}; ncomponents = 25, scaling = "genetic drift"
 
     # Mean number of derived alleles and standard deviations.
     m = zeros(Float64, nrow)
-    for i in 1:nrow
+    for i = 1:nrow
         m[i] = mean(adjusted[i, :])
     end
 
     if scaling == "z-score"
         # Standardize: Center and scale (z-score).
-        for i in 1:nrow
+        for i = 1:nrow
             s = std(adjusted[i, :])
             adjusted[i, :] = (adjusted[i, :] .- m[i]) / s
         end
-    else 
+    else
         # Center and adjust for genetic drift.
         p = m ./ 2  # Allele frequemcy (see Patterson 2006).
-        for i in 1:nrow
-            adjusted[i, :] = (adjusted[i, :] .- m[i]) / sqrt( p[i] * (1 - p[i]) )
+        for i = 1:nrow
+            adjusted[i, :] = (adjusted[i, :] .- m[i]) / sqrt(p[i] * (1 - p[i]))
         end
     end
 
@@ -108,7 +122,11 @@ in each row.
 
 `ID PC1 PC2 ... `
 """
-function pca_coordinates(M::MultivariateStats.PCA, geno::Matrix{<:Real}, sample_ids::Vector{<:AbstractString})
+function pca_coordinates(
+    M::MultivariateStats.PCA,
+    geno::Matrix{<:Real},
+    sample_ids::Vector{<:AbstractString},
+)
     coordinates = predict(M, geno)
     coordinates = coordinates'
     _, ncol = size(coordinates)
@@ -116,15 +134,3 @@ function pca_coordinates(M::MultivariateStats.PCA, geno::Matrix{<:Real}, sample_
     names = vcat("ID", ["PC$i" for i = 1:ncol])
     return DataFrame(data, names)
 end
-
-
-
-
-
-
-
-
-
-
-
-

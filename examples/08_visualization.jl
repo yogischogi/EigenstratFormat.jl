@@ -17,37 +17,35 @@ popdistances = DataFrame(CSV.File(popdistancefile))
 # Create a graph with genetic distances on the x-axis
 # and populations on the y-axis.
 f = Figure()
-ax = Axis(f[1, 2],
+ax = Axis(
+    f[1, 2],
     title = "Genetic distances for a single individual",
     subtitle = "Populations averages = X, individuals = O,  1000 - 1800 CE",
     xlabel = "Distance",
     yreversed = true,
-    limits = (nothing, nothing, 0, 21)
+    limits = (nothing, nothing, 0, 21),
 )
-hideydecorations!(ax, ticks=false)
+hideydecorations!(ax, ticks = false)
 
 # Display firt 20 populations.
 
 # Display individuals for each population.
 pop_idxs = population_idxs(Vector(distances.country))
-for i in 1:20
+for i = 1:20
     population = popdistances.population[i]
     idxs = pop_idxs[population]
     xs = distances.distance[idxs]
-    ys = [i for j in 1:length(xs)]
+    ys = [i for j = 1:length(xs)]
     scatter!(ax, xs, ys; markersize = 20)
 end
 
 # Average values
-for i in 1:20
+for i = 1:20
     scatter!(ax, popdistances.distance[i], i; marker = 'x', color = :black, markersize = 20)
 end
 
 # Population labels
-poplabels = Axis(f[1, 1];
-    limits = (0, nothing, 0, 21),
-    yreversed = true
-)
+poplabels = Axis(f[1, 1]; limits = (0, nothing, 0, 21), yreversed = true)
 hidespines!(poplabels)
 hideydecorations!(poplabels, grid = false)
 hidexdecorations!(poplabels, grid = false)
@@ -60,8 +58,3 @@ end
 # Adjust column sizes and show on screen.
 colsize!(f.layout, 1, Aspect(1, 0.3))
 f
-
-
-
-
-

@@ -2,6 +2,7 @@ name = "EigenstratFormat"
 uuid = "df1a4358-36d9-4579-8618-03b057c4e7d8"
 version = "0.8.0"
 authors = ["Dirk Struve <yogischogi@gmail.com>"]
+style = "blue"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"

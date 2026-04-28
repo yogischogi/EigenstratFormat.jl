@@ -16,7 +16,7 @@ function remove_invariant!(geno::Matrix{<:Real})
     # into the old matrix.
     nrow, ncol = size(geno)
     count = 0
-    for i in 1:nrow
+    for i = 1:nrow
         values = filter(x -> x != missing_value, geno[i, :])
         for v in values
             if v != values[1]
@@ -61,12 +61,12 @@ function impute_missing!(geno::Matrix{<:AbstractFloat}; ind_idxs = Int64[])
 
     # If indices are empty use whole genomatrix.
     if length(ind_idxs) == 0
-        ind_idxs = [i for i in 1:ncol]
+        ind_idxs = [i for i = 1:ncol]
     end
 
     # Compute mean values, 1 row represents 1 SNP.
-    for i in 1:nrow
-        m = 0.
+    for i = 1:nrow
+        m = 0.0
         # Get valid values.
         valids = filter(x -> x != missing_value, geno[i, ind_idxs])
         if length(valids) >= min_values
@@ -79,7 +79,7 @@ function impute_missing!(geno::Matrix{<:AbstractFloat}; ind_idxs = Int64[])
             # and a result is better than nothing.
             m = mean(filter(x -> x != missing_value, geno[i, :]))
         end
-        
+
         # Fill up the geno matrix for the specified indices.
         for j in ind_idxs
             if geno[i, j] == missing_value
@@ -103,9 +103,9 @@ to address individuals in the genomatrix properly.
 
 Often the `Status` field of the .ind file contains population names.
 """
-function population_idxs(population_names::Vector{<:Union{AbstractString, Missing}})
+function population_idxs(population_names::Vector{<:Union{AbstractString,Missing}})
     # A Dictionary that contains population names and a list of sample indices.
-    result = Dict{String, Vector{Integer}}()
+    result = Dict{String,Vector{Integer}}()
 
     # Create a Dictionary with population names.
     for p in population_names
@@ -115,7 +115,7 @@ function population_idxs(population_names::Vector{<:Union{AbstractString, Missin
     end
 
     # Fill population entries with sample indices.
-    for i in 1:length(population_names)
+    for i = 1:length(population_names)
         if !ismissing(population_names[i])
             push!(result[population_names[i]], i)
         end
@@ -136,7 +136,7 @@ this function may produce significantly false results.
 """
 function distance(genotype1::Vector, genotype2::Vector)
     diffs = []
-    for i in 1:length(genotype1)
+    for i = 1:length(genotype1)
         if genotype1[i] != missing_value && genotype2[i] != missing_value
             # Distance of two entries squared, also works for UInts.
             push!(diffs, (genotype2[i] - genotype1[i])^2)
@@ -165,8 +165,3 @@ function coverage(genotype::Vector)
     end
     return valids / length(genotype)
 end
-
-
-
-
-

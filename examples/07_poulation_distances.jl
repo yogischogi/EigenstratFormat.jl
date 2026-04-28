@@ -23,11 +23,8 @@ populations = population_idxs(Vector(selected.country))
 # Create a DataFrame including the population,
 # the population distance to an individual and the
 # number of samples in the population.
-population_distances = DataFrame(
-    population = String[],
-    distance = Float64[],
-    nsamples = Int64[]
-)
+population_distances =
+    DataFrame(population = String[], distance = Float64[], nsamples = Int64[])
 
 # Calculate mean population distances and save them to file.
 for (country, idxs) in populations
@@ -38,7 +35,3 @@ end
 sort!(population_distances, :distance)
 CSV.write(popdistancefile, population_distances)
 CSV.write(popselectionfile, selected)
-
-
-
-

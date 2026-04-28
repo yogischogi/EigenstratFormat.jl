@@ -22,7 +22,7 @@ function _hashit(sequence::AbstractString)
     hash::Int64 = 0
     for c in sequence
         hash *= 23
-        hash = hash % (2^32) 
+        hash = hash % (2^32)
         hash += Int64(c)
     end
     return hash
@@ -41,7 +41,7 @@ function _hashsum(sequences::Vector{<:AbstractString})
     for s in sequences
         thash = _hashit(s)
         hash *= 17
-        hash = hash % (2^32) 
+        hash = hash % (2^32)
         hash = xor(hash, thash)
     end
     return hash
@@ -127,7 +127,7 @@ function _read_eigenstrat_geno(
     genofile::AbstractString,
     nsnp::Int64,
     nind::Int64;
-    ind_idxs::Vector{Int64} = [i for i = 1:nind]
+    ind_idxs::Vector{Int64} = [i for i = 1:nind],
 )
     result = zeros(UInt8, nsnp, length(ind_idxs))
 
@@ -145,7 +145,7 @@ function _read_eigenstrat_geno(
         for snp = 1:nsnp
             read!(io, buffer)
             # Extract alleles for all individuals.
-            for i in 1:length(ind_idxs)
+            for i = 1:length(ind_idxs)
                 result[snp, i] = _alleles(buffer, ind_idxs[i])
             end
         end
@@ -181,7 +181,7 @@ function _read_eigenstrat_tgeno(
     genofile::AbstractString,
     nsnp::Int64,
     nind::Int64;
-    ind_idxs::Vector{Int64} = [i for i = 1:nind]
+    ind_idxs::Vector{Int64} = [i for i = 1:nind],
 )
     result = zeros(UInt8, nsnp, length(ind_idxs))
 
@@ -284,7 +284,7 @@ function write_eigenstrat_geno(
     genofile::AbstractString,
     genomatrix::Matrix{UInt8};
     ind_hash::Int64 = 0,
-    snp_hash::Int64 = 0
+    snp_hash::Int64 = 0,
 )
     (rows, cols) = size(genomatrix)
 
@@ -305,16 +305,16 @@ function write_eigenstrat_geno(
     # This should never happen, but the file would still be
     # useable if the hash sums are not checked.
     if length(header) > bytes_per_line
-        header = header[1: bytes_per_line]
+        header = header[1:bytes_per_line]
     end
     write(io, header)
 
     # Write to file.
     open(genofile, create = true, write = true) do file
         write(file, buffer)
-        for row in 1:rows
+        for row = 1:rows
             byte::UInt8 = 0
-            for col in 1:cols
+            for col = 1:cols
                 value = genomatrix[row, col]
                 # Encode in byte.
                 bitpair_pos = (col - 1) % 4
@@ -322,14 +322,14 @@ function write_eigenstrat_geno(
                 byte = byte | (value << shift)
 
                 # Write byte to file.
-                if  bitpair_pos == 3 || col == cols
+                if bitpair_pos == 3 || col == cols
                     write(file, byte)
                     byte = 0
                 end
             end
             write(file, fillbytes)
         end
-        flush(file)    
+        flush(file)
     end
 end
 
@@ -344,8 +344,13 @@ Return a `DataFrame` containing the columns:
 rsid  chromosome  position  genotype
 """
 function read_vendor_data(filename::AbstractString)
-    snptable = CSV.read(filename, DataFrame; header = ["rsid", "chromosome", "position", "genotype"],
-        types = [String, String, String, String], comment = "#")
+    snptable = CSV.read(
+        filename,
+        DataFrame;
+        header = ["rsid", "chromosome", "position", "genotype"],
+        types = [String, String, String, String],
+        comment = "#",
+    )
     # Drop header line (MyHeritage, 23andMe).
     if snptable.rsid[1] == "RSID" || snptable.rsid[1] == "rsid"
         delete!(snptable, 1)
@@ -366,11 +371,19 @@ chromosome, rsid, cM, position, allele1, allele2
 function read_eigenstrat_snp(snpfile::AbstractString)
     local eigenstrat_snps::DataFrame
     if endswith(snpfile, ".bim")
-        eigenstrat_snps = CSV.read(snpfile, DataFrame; header = ["chromosome", "rsid", "cM", "position", "allele1", "allele2"])
+        eigenstrat_snps = CSV.read(
+            snpfile,
+            DataFrame;
+            header = ["chromosome", "rsid", "cM", "position", "allele1", "allele2"],
+        )
     elseif endswith(snpfile, ".snp")
-        eigenstrat_snps = CSV.read(snpfile, DataFrame;
+        eigenstrat_snps = CSV.read(
+            snpfile,
+            DataFrame;
             header = ["rsid", "chromosome", "cM", "position", "allele1", "allele2"],
-            delim = ' ', ignorerepeated = true)
+            delim = ' ',
+            ignorerepeated = true,
+        )
     else
         throw("read_eigenstrat: Wrong file format! File must end in .bim or .snp.")
     end
@@ -409,8 +422,13 @@ Gender: M (male), F (Female) or U (unknown).
 Status: Case, Control or population label.
 """
 function read_eigenstrat_ind(indfile::AbstractString)
-    inds = CSV.read(indfile, DataFrame; header = ["ID", "Gender", "Status"],
-        delim = ' ', ignorerepeated = true)
+    inds = CSV.read(
+        indfile,
+        DataFrame;
+        header = ["ID", "Gender", "Status"],
+        delim = ' ',
+        ignorerepeated = true,
+    )
     return inds
 end
 
@@ -454,10 +472,10 @@ Each SNP is characterized by a Tuple of two alleles. The `reference_snp`
 contains the reference allele and the derived allele.
 """
 function _encode(
-    genotype::Tuple{Char, Char},
+    genotype::Tuple{Char,Char},
     byte::UInt8,
     position::Int64,
-    reference_snp::Tuple{Char, Char}
+    reference_snp::Tuple{Char,Char},
 )
     # Calculate number of reference alleles.
     n = 0x3 # 3 = no data/invalid
@@ -470,8 +488,10 @@ function _encode(
     end
 
     # Check for invalid markers.
-    if (genotype[1] != reference_snp[1]) && (genotype[2] != reference_snp[1]) &&
-       (genotype[1] != reference_snp[2]) && (genotype[2] != reference_snp[2])
+    if (genotype[1] != reference_snp[1]) &&
+       (genotype[2] != reference_snp[1]) &&
+       (genotype[1] != reference_snp[2]) &&
+       (genotype[2] != reference_snp[2])
         n = 0x3
     end
 
@@ -536,7 +556,7 @@ function add_individual(
     id::AbstractString;
     gender = "U",
     status = "Control",
-    method = "intersect"
+    method = "intersect",
 )
     if method != "intersect" && method != "add"
         throw("""add_individual(): Parameter "method" must be "add" or "intersect".""")
@@ -571,7 +591,7 @@ function add_individual(
     # Geno file.
 
     # Put individual's SNPs into a Dictionary.
-    ind_dict = Dict{String, String}()
+    ind_dict = Dict{String,String}()
     for snp in eachrow(vendor_snps)
         g = snp.genotype
         # Check for missing data.
@@ -607,7 +627,7 @@ function add_individual(
             cols = nind + 1
             rows = length(idxs)
             header = Array{UInt8}("GENO $cols $rows $ihash $shash")
-            outbuf[1: length(header)] = header
+            outbuf[1:length(header)] = header
             write(outfile, outbuf)
             flush(outfile)
             outbuf .= 0
@@ -633,7 +653,7 @@ function add_individual(
                         genotype = ('-', '-')
                         byte = _encode(genotype, byte, bitpair_no, reference)
                     end
-                    outbuf[pos]  = byte
+                    outbuf[pos] = byte
                     # Write to file.
                     write(outfile, outbuf)
                     flush(outfile)
@@ -663,9 +683,10 @@ rsid, chromosome, position, genotype
 However exact spelling is not mandatory.
 """
 function write_23andMe(filename::AbstractString, snptable)
-    CSV.write(filename, snptable; delim = "\t", header = ["#rsid", "chromosome", "position", "genotype"])
+    CSV.write(
+        filename,
+        snptable;
+        delim = "\t",
+        header = ["#rsid", "chromosome", "position", "genotype"],
+    )
 end
-
-
-
-

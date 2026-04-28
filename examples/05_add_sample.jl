@@ -3,7 +3,7 @@
 # Requires autosomal results from Family Tree DNA or MyHeritage.
 # Other vendors should be possible but not tested with this example.
 
-using  EigenstratFormat
+using EigenstratFormat
 
 # ADJUST basedir TO THE PATH ON YOUR COMPUTER!
 basedir = normpath("/home/dirk/Geno/AADR/database/")
@@ -20,4 +20,3 @@ infileprefix = joinpath(basedir, database_in)
 outfileprefix = joinpath(basedir, database_out)
 
 add_individual(infileprefix, outfileprefix, vendorfile, "Me"; status = "Me")
-

@@ -13,7 +13,7 @@ genofile = joinpath(basedir, "HGDP.geno")
 coordinatesfile = joinpath(basedir, "HGDP_coordinates.csv")
 
 # Load database.
-individuals = read_eigenstrat_ind(indfile) 
+individuals = read_eigenstrat_ind(indfile)
 genotypes = read_eigenstrat_geno(genofile)
 
 # Remove invariant markers.
@@ -34,4 +34,3 @@ CSV.write(coordinatesfile, coordinates)
 
 # Plot first two PCA coordinates using CairoMakie.
 scatter(coordinates[:, :PC1], coordinates[:, :PC2])
-

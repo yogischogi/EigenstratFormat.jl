@@ -69,7 +69,7 @@ idxs = filter(i -> is_valid[i], all_idxs)
 # Shrink database by selecting a subset of indices.
 # This is useful if the resulting database gets
 # too large or computations take too much time.
-idxs = [idxs[i] for i in 10:10:length(idxs)]
+idxs = [idxs[i] for i = 10:10:length(idxs)]
 
 # Use indices to create now .ind and .anno files.
 extract_modern_ind(idxs, indfile, indfileout)
@@ -88,4 +88,3 @@ extract_modern_geno(idxs, genofile, indfile, snpfile, genofileout)
 # HGDP.snp
 # HGDP.anno
 # HGDP.geno
-

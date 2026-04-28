@@ -4,11 +4,6 @@ using Documenter, EigenstratFormat
 makedocs(
     sitename = "EigenstratFormat.jl",
     modules = [EigenstratFormat],
-#    remotes = nothing
+    #    remotes = nothing
 )
-deploydocs(;
-    repo="github.com/yogischogi/EigenstratFormat.jl.git",
-    devbranch = "main"
-)
-
-
+deploydocs(; repo = "github.com/yogischogi/EigenstratFormat.jl.git", devbranch = "main")

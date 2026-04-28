@@ -38,9 +38,9 @@ Read database files an print some information to the screen.
 function read_eigenstrat_database(genofile, indfile, snpfile)
     # Read database files.
     snps = read_eigenstrat_snp(snpfile)
-    individuals = read_eigenstrat_ind(indfile) 
+    individuals = read_eigenstrat_ind(indfile)
     genotypes = read_eigenstrat_geno(genofile)
-    
+
     # Show some content on the screen.
     println("SNPs")
     print(first(snps, 5))
@@ -95,16 +95,3 @@ end
 # Using our methods.
 read_eigenstrat_database(genopath, indpath, snppath)
 reduce_eigenstrat_database(genopath, indpath, snppath)
-
-
-
-
-
-
-
-
-
-
-
-
-
