@@ -80,13 +80,34 @@ function _bitpair(byte::UInt8, pos::Integer)
 end
 
 """
+    _set_bitpair(byte::UInt8, pos::Integer, bitpair::UInt8)
+
+Inserts 2 bits into a byte. The bitpair in the byte must be 0.
+
+The bit positions start at 0.
+Allowed are values 0, 1, 2, 3.
+"""
+function _set_bitpair(byte::UInt8, pos::Integer, bitpair::UInt8)
+    if pos == 0
+        byte | (bitpair << 6)
+    elseif pos == 1
+        byte | (bitpair << 4)
+    elseif pos == 2
+        byte | (bitpair << 2) 
+    elseif pos == 3
+        byte | bitpair        
+    end
+end
+
+"""
     _alleles(bytes::Vector{UInt8}, idx::Int64)
 
 Return the number of variant alleles at a specified position.
 
 `bytes`: Row of bytes that encode an SNP for all individuals.
 
-`idx`: Position index.
+`idx`: Position index of the two bits that encode the alleles.
+       Each byte in the bytes vector contains 4 positions (number of alleles).
 """
 function _alleles(bytes::Vector{UInt8}, idx::Int64)
     # Find byte that encodes the specified SNP.
@@ -98,6 +119,25 @@ function _alleles(bytes::Vector{UInt8}, idx::Int64)
     bitpair_no = (idx - 1) % 4
     bits = _bitpair(byte, bitpair_no)
     return UInt8(bits)
+end
+
+"""
+    _set_alleles!(bytes::Vector{UInt8}, idx::Int64, bitpair::UInt8)
+
+Set the number of variant alleles at a specified position.
+
+`bytes`: Row of bytes that encode an SNP for all individuals.
+
+`idx`: Position index of the bitpair, not the byte.
+"""
+function _set_alleles!(bytes::Vector{UInt8}, idx::Int64, bitpair::UInt8)
+    # Find byte that encodes the specified SNP.
+    pos = Int64(ceil(idx / 4))
+
+    # Insert bitpair into the bytes array.
+    # bitpair index starts at 0.
+    bitpair_no = (idx - 1) % 4
+    bytes[pos] = _set_bitpair(bytes[pos], bitpair_no, bitpair)
 end
 
 """
@@ -522,7 +562,8 @@ end
 
 Add an individual to a database in Eigenstrat format. 
 
-XXX Currently the genofile of the input database must be in GENO format, not TGENO.
+If the input database is in GENO format, GENO format is also
+used as output. If it is TGENO, TGENO is written.
 
 `database_in_prefix:`: Prefix of the input database. This is the full path without
 the file suffix.
@@ -582,6 +623,8 @@ function add_individual(
     if method == "intersect"
         idxs = filter(i -> snps.rsid[i] in vendor_set, idxs)
     end
+
+    # Use a set here for increased performance.
     idxs_set = Set(idxs)
 
     # Write .snp file.
@@ -601,64 +644,148 @@ function add_individual(
         ind_dict[snp.rsid] = g
     end
 
-    # 1 SNP value for 4 individuals is encoded as 1 byte.
-    bytes_per_line = Int64(ceil(nind / 4))
-    if bytes_per_line < geno_header_size
-        bytes_per_line = geno_header_size
-    end
-
-    # The output must contain enough space for 1 extra individual.
-    out_bytes_per_line = Int64(ceil((nind + 1) / 4))
-    # Adjust for minimum header size.
-    if out_bytes_per_line < bytes_per_line
-        out_bytes_per_line = bytes_per_line
-    end
-
-    # Read file line by line, add SNP for individual and write to outfile.
+    # Determine if file is GENO or TGENO format.
+    fileformat = "invalid"
     open(database_in_prefix * genosuffix) do infile
-        open(database_out_prefix * genosuffix, create = true, write = true) do outfile
-            inbuffer = Array{UInt8}(undef, bytes_per_line)
-            # Skip first line because it is a header.
-            read!(infile, inbuffer)
-            # Write new header.
-            ihash = string(ind_hash, base = 16)
-            shash = string(snp_hash, base = 16)
-            outbuf = zeros(UInt8, out_bytes_per_line)
-            cols = nind + 1
-            rows = length(idxs)
-            header = Array{UInt8}("GENO $cols $rows $ihash $shash")
-            outbuf[1:length(header)] = header
-            write(outfile, outbuf)
-            flush(outfile)
-            outbuf .= 0
+        inbuffer = Array{UInt8}(undef, geno_header_size)
+        read!(infile, inbuffer)
+        fileheader = String(inbuffer)
+        if startswith(fileheader, "GENO")
+            fileformat = "GENO"
+        elseif startswith(fileheader, "TGENO")
+            fileformat = "TGENO"
+        else
+            error("Geno file: unknown file format.")
+        end
+    end
 
-            # Write SNPs.
-            for i = 1:nsnp
-                # Copy input row to output row.
+    # Write geno file if input geno file is GENO
+    if fileformat == "GENO"
+        # 1 SNP value for 4 individuals is encoded as 1 byte.
+        bytes_per_line = Int64(ceil(nind / 4))
+        if bytes_per_line < geno_header_size
+            bytes_per_line = geno_header_size
+        end
+
+        # The output must contain enough space for 1 extra individual.
+        out_bytes_per_line = Int64(ceil((nind + 1) / 4))
+        # Adjust for minimum header size.
+        if out_bytes_per_line < bytes_per_line
+            out_bytes_per_line = bytes_per_line
+        end
+
+        # Read file line by line, add SNP for individual and write to outfile.
+        open(database_in_prefix * genosuffix) do infile
+            open(database_out_prefix * genosuffix, create = true, write = true) do outfile
+                inbuffer = Array{UInt8}(undef, bytes_per_line)
+                # Skip first line because it is a header.
                 read!(infile, inbuffer)
-                if i in idxs_set
-                    outbuf[1:bytes_per_line] = inbuffer
-                    # Add individual's SNP value.
-                    pos = Int64(ceil((nind + 1) / 4))
-                    byte = outbuf[pos]
-                    bitpair_no = nind % 4
-                    rsid = snps.rsid[i]
-                    reference = (snps.allele1[i][1], snps.allele2[i][1])
-                    if haskey(ind_dict, rsid)
-                        alleles = ind_dict[rsid]
-                        genotype = (alleles[1], alleles[2])
-                        byte = _encode(genotype, byte, bitpair_no, reference)
-                    else
-                        # missing genotype
-                        genotype = ('-', '-')
-                        byte = _encode(genotype, byte, bitpair_no, reference)
+                # Write new header.
+                ihash = string(ind_hash, base = 16)
+                shash = string(snp_hash, base = 16)
+                outbuf = zeros(UInt8, out_bytes_per_line)
+                cols = nind + 1
+                rows = length(idxs)
+                header = Array{UInt8}("GENO $cols $rows $ihash $shash")
+                outbuf[1:length(header)] = header
+                write(outfile, outbuf)
+                flush(outfile)
+                outbuf .= 0
+
+                # Write SNPs.
+                for i = 1:nsnp
+                    # Copy input row to output row.
+                    read!(infile, inbuffer)
+                    if i in idxs_set
+                        outbuf[1:bytes_per_line] = inbuffer
+                        # Add individual's SNP value.
+                        pos = Int64(ceil((nind + 1) / 4))
+                        byte = outbuf[pos]
+                        bitpair_no = nind % 4
+                        rsid = snps.rsid[i]
+                        reference = (snps.allele1[i][1], snps.allele2[i][1])
+                        if haskey(ind_dict, rsid)
+                            alleles = ind_dict[rsid]
+                            genotype = (alleles[1], alleles[2])
+                            byte = _encode(genotype, byte, bitpair_no, reference)
+                        else
+                            # missing genotype
+                            genotype = ('-', '-')
+                            byte = _encode(genotype, byte, bitpair_no, reference)
+                        end
+                        outbuf[pos] = byte
+                        # Write to file.
+                        write(outfile, outbuf)
+                        flush(outfile)
+                        outbuf .= 0
                     end
-                    outbuf[pos] = byte
-                    # Write to file.
+                end
+            end
+        end
+    end
+
+    # Write geno file if input geno file is TGENO.
+    if fileformat == "TGENO"
+        # Each line contains a full set of SNPs for an individual.
+        in_bytes_per_line = Int64(ceil(nsnp / 4))
+        out_bytes_per_line = Int64(ceil(length(idxs) / 4))        
+
+        # One row must have at least the length of the file header.
+        if in_bytes_per_line < geno_header_size
+            in_bytes_per_line = geno_header_size
+        end
+        if out_bytes_per_line < geno_header_size
+            out_bytes_per_line = geno_header_size
+        end
+
+        # Read and write new TGENO file.
+        open(database_in_prefix * genosuffix) do infile
+            open(database_out_prefix * genosuffix, create = true, write = true) do outfile
+                inbuffer = Array{UInt8}(undef, in_bytes_per_line)
+                header = Array{UInt8}(undef, geno_header_size)
+                # Skip first line because it is a header.
+                read!(infile, header)
+                # Write new header.
+                ihash = string(ind_hash, base = 16)
+                shash = string(snp_hash, base = 16)
+                outbuf = zeros(UInt8, out_bytes_per_line)
+                count_inds = nind + 1
+                count_snps = length(idxs)
+                out_header = Array{UInt8}("TGENO $count_inds $count_snps $ihash $shash")
+                header .= 0
+                header[1:length(out_header)] = out_header
+                write(outfile, header)
+                flush(outfile)
+
+                # Extract and write existing data.
+                for _ = 1:nind
+                    # Copy input row to output row.
+                    read!(infile, inbuffer)
+                    for (i, j) in enumerate(idxs)
+                        a = _alleles(inbuffer, j)
+                        _set_alleles!(outbuf, i, a)
+                    end
                     write(outfile, outbuf)
                     flush(outfile)
                     outbuf .= 0
                 end
+
+                # Add new individual sample.
+                for (i, j) in enumerate(idxs)
+                    rsid = snps.rsid[j]
+                    reference = (snps.allele1[j][1], snps.allele2[j][1])
+                    genotype = ('-', '-')
+                    if haskey(ind_dict, rsid)
+                        alleles = ind_dict[rsid]
+                        genotype = (alleles[1], alleles[2])                        
+                    end
+                    byte::UInt8 = 0
+                    bitpair = _encode(genotype, byte, 3, reference)
+                    _set_alleles!(outbuf, i, bitpair)
+                end
+                write(outfile, outbuf)
+                flush(outfile)
+                outbuf .= 0
             end
         end
     end

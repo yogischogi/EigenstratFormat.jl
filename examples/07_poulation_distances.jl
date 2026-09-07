@@ -5,7 +5,7 @@
 using CSV, EigenstratFormat, DataFrames, Statistics
 
 # ADJUST basedir TO THE PATH ON YOUR COMPUTER!
-basedir = normpath("/home/dirk/Geno/AADR/database/")
+basedir = normpath("/home/dirk/Geno/AADR/database/v66.p1/")
 
 # Output file for genetic distances from one individual to populations.
 popdistancefile = "zzz_population_distances.csv"

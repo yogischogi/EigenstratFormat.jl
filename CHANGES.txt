@@ -1,3 +1,8 @@
+
+2026-09-07
+- Examples rewritten for AADR v66p1.
+- add_individual() now also accepts TGENO format.
+
 2026-04-22
 - New example 08_visualization.jl creates a plot to display the
   previously calculated genetic distances.

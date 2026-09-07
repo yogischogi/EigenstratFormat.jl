@@ -6,13 +6,13 @@
 using EigenstratFormat
 
 # ADJUST basedir TO THE PATH ON YOUR COMPUTER!
-basedir = normpath("/home/dirk/Geno/AADR/database/")
+basedir = normpath("/home/dirk/Geno/AADR/database/v66.p1/")
 
 # ADJUST vendorfile to your autosomal results!
 vendorfile = "my-heritage.csv"
 
 # Prefixes for database names.
-database_in = "v62.0_1240k_public"
+database_in = "v66.p1_1240K.aadr.patch.PUB"
 database_out = "zzz_database"
 
 # Full AADR database.

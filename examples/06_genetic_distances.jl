@@ -4,7 +4,7 @@
 using CSV, EigenstratFormat, DataFrames
 
 # ADJUST basedir TO THE PATH ON YOUR COMPUTER!
-basedir = normpath("/home/dirk/Geno/AADR/database/")
+basedir = normpath("/home/dirk/Geno/AADR/database/v66.p1/")
 
 # Filename for the results.
 resultfile = "zzz_genetic_distances.csv"
@@ -14,12 +14,12 @@ genofile = joinpath(basedir, "zzz_database.geno")
 indfile = joinpath(basedir, "zzz_database.ind")
 
 # Annotations file of the AADR database.
-annofile = joinpath(basedir, "v62.0_HO_public.anno")
+annofile = joinpath(basedir, "v66.p1_1240K.aadr.PUB.anno")
 
 # Column indices of important columns.
 anno_id_col = 1
-anno_age_col = 10
-anno_country_col = 16
+anno_age_col = 11
+anno_country_col = 17
 
 # We consider only samples with a minimum coverage.
 # The chosen 0.5 in this example is just arbitrary.

@@ -12,21 +12,21 @@
 # The database is very large. You need to download it from:
 # https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/FFIDCW
 # Files used in this example:
-# v62.0_HO_public.anno
-# v62.0_HO_public.geno
-# v62.0_HO_public.ind
-# v62.0_HO_public.snp
+# v66.p1_HO.aadr.PUB.anno
+# v66.p1_HO.aadr.patch.PUB.geno
+# v66.p1_HO.aadr.patch.PUB.ind
+# v66.p1_HO.aadr.patch.PUB.snp
 
 using CSV, DataFrames, EigenstratFormat
 
 # ADJUST basedir TO THE PATH ON YOUR COMPUTER!
-basedir = normpath("/home/dirk/Geno/AADR/database/")
+basedir = normpath("/home/dirk/Geno/AADR/database/v66.p1/")
 
 # Filenames of the database.
-annofile = joinpath(basedir, "v62.0_HO_public.anno")
-genofile = joinpath(basedir, "v62.0_HO_public.geno")
-indfile = joinpath(basedir, "v62.0_HO_public.ind")
-snpfile = joinpath(basedir, "v62.0_HO_public.snp")
+annofile = joinpath(basedir, "v66.p1_HO.aadr.PUB.anno")
+genofile = joinpath(basedir, "v66.p1_HO.aadr.patch.PUB.geno")
+indfile = joinpath(basedir, "v66.p1_HO.aadr.patch.PUB.ind")
+snpfile = joinpath(basedir, "v66.p1_HO.aadr.patch.PUB.snp")
 
 # Output files for individuals from the HGDP project.
 indfileout = joinpath(basedir, "HGDP.ind")
