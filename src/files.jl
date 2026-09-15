@@ -460,8 +460,15 @@ where
 Gender: M (male), F (Female) or U (unknown).
 
 Status: Case, Control or population label.
+
+Parameters:
+
+`indfile`: Filename of the Eigenstrat ind file.
+
+`ind_idxs`: Indices of individuals that should be read from the file.
+    If this is not specified, all individuals are returned.
 """
-function read_eigenstrat_ind(indfile::AbstractString)
+function read_eigenstrat_ind(indfile::AbstractString; ind_idxs = Int64[])
     inds = CSV.read(
         indfile,
         DataFrame;
@@ -469,7 +476,11 @@ function read_eigenstrat_ind(indfile::AbstractString)
         delim = ' ',
         ignorerepeated = true,
     )
-    return inds
+    if length(ind_idxs) == 0
+        return inds
+    else
+        return inds[ind_idxs, :]
+    end
 end
 
 """

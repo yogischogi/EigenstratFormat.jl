@@ -28,10 +28,14 @@ ax = Axis(
 hideydecorations!(ax, ticks = false)
 
 # Display firt 20 populations.
+pops_to_display = 20
+if pops_to_display > nrow(popdistances)
+    pops_to_display = nrow(popdistances)
+end
 
 # Display individuals for each population.
 pop_idxs = population_idxs(Vector(distances.country))
-for i = 1:20
+for i = 1:pops_to_display
     population = popdistances.population[i]
     idxs = pop_idxs[population]
     xs = distances.distance[idxs]
@@ -40,7 +44,7 @@ for i = 1:20
 end
 
 # Average values
-for i = 1:20
+for i = 1:pops_to_display
     scatter!(ax, popdistances.distance[i], i; marker = 'x', color = :black, markersize = 20)
 end
 
@@ -51,7 +55,7 @@ hideydecorations!(poplabels, grid = false)
 hidexdecorations!(poplabels, grid = false)
 #hideydecorations!(poplabels, ticks=false)
 #hidexdecorations!(poplabels, ticks=false)
-for i = 1:20
+for i = 1:pops_to_display
     text!(poplabels, 0, i + 0.5; text = popdistances.population[i])
 end
 

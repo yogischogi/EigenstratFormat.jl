@@ -1,3 +1,8 @@
+2026-09-15
+- Fixed example 08_visualizationl.jl to work with small numbers of populations.
+- read_eigenstrat_ind() now allows selection of individual samples
+  like read_eigenstrat_geno().
+- Updated configuration to Julia 1.13.
 
 2026-09-07
 - Examples rewritten for AADR v66p1.

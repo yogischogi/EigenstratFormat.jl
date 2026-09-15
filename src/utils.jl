@@ -4,7 +4,7 @@
     remove_invariant!(geno::Matrix{<:Real})
 
 Remove invariant markers from a genomatrix.
-Return a view to the cahanged geno matrix that contains only valid markers.
+Return a view to the changed geno matrix that contains only valid markers.
 
 Because geno matrices can get very big the original matrix
 is changed in place and is no longer valid.
