@@ -1,3 +1,7 @@
+2026-09-17
+- distance() now also supports the Manhattan distance.
+  The calculation of the geometric distance has been improved.
+
 2026-09-15
 - Fixed example 08_visualizationl.jl to work with small numbers of populations.
 - read_eigenstrat_ind() now allows selection of individual samples

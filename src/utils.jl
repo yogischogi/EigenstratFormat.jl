@@ -124,25 +124,82 @@ function population_idxs(population_names::Vector{<:Union{AbstractString,Missing
 end
 
 """
-    distance(genotype1::Vector, genotype2::Vector)
+    distance(genotype1::Vector, genotype2::Vector; metric = "geometric")
 
-Approximate the geometric distance between two genotypes.
+Approximate the distance between two genotypes. The default metric
+is the Euklidian/geometric metric.
 
 Because the genotypes often contain missing values only valid
 entries are used for the calculation and the rest is approximated.
 
-In case of little overlap between the valid entries of both genotypes
-this function may produce significantly false results.
+It appears that because of the quadratic terms in the geometric distance
+the Manhattan distance often yields better results when it comes to
+approximation.
+
+`metric` can be "geometric" or "manhattan".
 """
-function distance(genotype1::Vector, genotype2::Vector)
-    diffs = []
+function distance(genotype1::Vector, genotype2::Vector; metric = "geometric")
+    if metric == "geometric"
+        return _geometric_distance(genotype1, genotype2)
+    elseif metric == "manhattan"
+        return _manhattan_distance(genotype1, genotype2)
+    else
+        throw("distance() only supports metrics 'geometric' and 'manhattan'.")
+    end
+end
+
+"""
+    _manhattan_distance(genotype1::Vector, genotype2::Vector)
+
+Approximate the Manhattan distance between two genotypes.
+
+Because the genotypes often contain missing values only valid
+entries are used for the calculation and the rest is approximated.
+"""
+function _manhattan_distance(genotype1::Vector, genotype2::Vector)
+    distance = 0
+    comparisons = 0
     for i = 1:length(genotype1)
-        if genotype1[i] != missing_value && genotype2[i] != missing_value
-            # Distance of two entries squared, also works for UInts.
-            push!(diffs, (genotype2[i] - genotype1[i])^2)
+        # Make sure that a >= b.
+        a = missing_value
+        b = missing_value
+        if genotype1[i] >= genotype2[i]
+            a = genotype1[i]
+            b = genotype2[i]
+        else
+            a = genotype2[i]
+            b = genotype1[i]
+        end
+        # Calculate distance
+        if a != missing_value && b != missing_value
+            comparisons += 1
+            distance += a - b
         end
     end
-    approx = length(genotype1) / length(diffs) * sum(diffs)
+    approx = distance / comparisons * length(genotype1)
+    return approx
+end
+
+"""
+    _geometric_distance(genotype1::Vector, genotype2::Vector)
+
+Approximate the geometric distance between two genotypes using
+the Euklidian metric.
+
+Because the genotypes often contain missing values only valid
+entries are used for the calculation and the rest is approximated.
+"""
+function _geometric_distance(genotype1::Vector, genotype2::Vector)
+    distance = 0
+    comparisons = 0
+    for i = 1:length(genotype1)
+        if genotype1[i] != missing_value && genotype2[i] != missing_value
+            comparisons += 1
+            # This line works with unsigned Integers UInt8.
+            distance += (genotype1[i] - genotype2[i])^2
+        end
+    end
+    approx = distance / comparisons * length(genotype1)
     return sqrt(approx)
 end
 
