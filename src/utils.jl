@@ -180,6 +180,7 @@ function _manhattan_distance(genotype1::Vector, genotype2::Vector)
     return approx
 end
 
+
 """
     _geometric_distance(genotype1::Vector, genotype2::Vector)
 

@@ -1,3 +1,7 @@
+2026-09-22
+- Added example 09_animation.jl.
+  GeoMakie dependency
+
 2026-09-17
 - distance() now also supports the Manhattan distance.
   The calculation of the geometric distance has been improved.

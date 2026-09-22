@@ -41,6 +41,8 @@ After that you may want to take a look at the
   calculates population distances for a single individual.
 - [08_visualization.jl](https://github.com/yogischogi/EigenstratFormat.jl/blob/main/examples/08_visualization.jl)
   visualizes the previously calculated genetic distances.
+- [09_animation.jl](https://github.com/yogischogi/EigenstratFormat.jl/blob/main/examples/09_animation.jl)
+  creates an animation of related samples around the world according to genetic distances.
 
 
 ## Human DNA samples
