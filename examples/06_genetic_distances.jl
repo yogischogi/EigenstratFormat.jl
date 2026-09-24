@@ -22,9 +22,11 @@ anno_age_col = 11
 anno_country_col = 17
 
 # We consider only samples with a minimum coverage.
-# The chosen 0.5 in this example is just arbitrary.
+# The chosen 0.8 in this example is just arbitrary.
 # You can adjust this to your needs.
-min_coverage = 0.5
+# However the pseudo_haploid metric seems to need a
+# sufficiently high coverage to produce good results.
+min_coverage = 0.8
 
 # Read minimal information about individuals.
 ind = read_eigenstrat_ind(indfile)
@@ -52,7 +54,11 @@ result = DataFrame(
     population = String[],
 )
 
-# Compare the last sample to all other individuals in the database.
+# Database index of the sample you want to compare to all other samples.
+# You can use the .ind file to get the desired index.
+compare_idx = cols
+
+# Compare the compare_idx sample to all other individuals in the database.
 for i = 1:cols
     age = 0
     anno_id = ""
@@ -71,7 +77,9 @@ for i = 1:cols
     c = coverage(geno[:, i])
     # Filter samples.
     if c >= min_coverage && age >= 0
-        d = distance(geno[:, cols], geno[:, i])
+        # We are using the pseudo_haploid metric here because wer are
+        # dealing with ancient samples.
+        d = distance(geno[:, compare_idx], geno[:, i]; metric = "pseudo_haploid")
         push!(result, [i, d, c, ind_id, age, country, population])
     end
 end

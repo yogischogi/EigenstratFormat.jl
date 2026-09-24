@@ -9,7 +9,8 @@ using EigenstratFormat
 basedir = normpath("/home/dirk/Geno/AADR/database/v66.p1/")
 
 # ADJUST vendorfile to your autosomal results!
-vendorfile = "my-heritage.csv"
+vendorfile = "family-finder.csv"
+#vendorfile = "my-heritage.csv"
 
 # Prefixes for database names.
 database_in = "v66.p1_1240K.aadr.patch.PUB"

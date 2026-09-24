@@ -137,6 +137,18 @@ the Manhattan distance often yields better results when it comes to
 approximation.
 
 `metric` can be "geometric", "manhattan" or "pseudo_haploid".
+
+`geometric` or `manhattan` produce good results for samples that
+were processed uding diploid calls (modern samples) or if all samples
+were processed using the same method.
+
+`pseudo_haploid` works well if you want to compare high quality samples
+(diploid calls) with low quality samples (pseudo haploid calls), usually
+mixtures of modern and ancient samples.
+
+It simulates pseudo haploid calling on high quality samples (diploid).
+Thus it introduces a statistical uncertainty and the results are
+not totally reproduceable.
 """
 function distance(genotype1::Vector, genotype2::Vector; metric = "geometric")
     if metric == "geometric"
