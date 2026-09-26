@@ -1,3 +1,8 @@
+2026-09-26
+- Example 10_animation_elaborate.jl that uses different
+  colors for different sample ages.
+- New method mode() to calculate the modal genotype.
+
 2026-09-24
 - Rewrote example 06_genetic_distances.jl to use the
   pseudo_haploid distance.

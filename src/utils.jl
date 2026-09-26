@@ -10,6 +10,8 @@ Because geno matrices can get very big the original matrix
 is changed in place and is no longer valid.
 
 `geno` is the matrix. Each row represents one single marker for multiple samples.
+
+XXX Remove Floats, because they are too big and are not compatible with pseudo_haploid.
 """
 function remove_invariant!(geno::Matrix{<:Real})
     # Remove invariant markers by copying non-invariant markers in place
@@ -32,7 +34,9 @@ end
 """
     impute_missing(geno::Matrix{<:Integer}; ind_idxs = Int64[])
 
-Call `impute_missing(...)` with a `Float64` matrix instead of an `Integer` matrix.    
+Call `impute_missing(...)` with a `Float64` matrix instead of an `Integer` matrix.
+
+XXX Remove Floats, because they are too big and are not compatible with pseudo_haploid.
 """
 function impute_missing(geno::Matrix{<:Integer}; ind_idxs = Int64[])
     return impute_missing!(Matrix{Float64}(geno); ind_idxs = ind_idxs)
@@ -274,3 +278,66 @@ function coverage(genotype::Vector)
     end
     return valids / length(genotype)
 end
+
+"""
+    _mode(values::Vector{UInt8}, should_flip::Bool)
+
+Calculate the mode/modal value of a list of values.
+
+If there is no clear winner `should_flip` determines if
+the lower or higher value is chosen.
+"""
+function _mode(values::Vector{UInt8}, should_flip::Bool)
+    result = missing_value
+    counts = zeros(UInt8, 4)
+    # Count values (0, 1, 2, 3).
+    for v in values
+        counts[v+1] += 1
+    end
+    # Only missing entries.
+    if counts[4] == length(values)
+        return missing_value
+    end
+    # Count occurrences.
+    max = 0
+    imax = []
+    for i in 1:3
+        if counts[i] > max
+            max = counts[i]
+            imax = [i]
+        elseif counts[i] == max
+            push!(imax, i)
+        end
+    end   
+    # Evaluate how often each mutation occurs.
+    if length(imax) == 1
+        # One value occurs more often than the others.
+        result = imax[1] - 1
+    elseif length(imax) == 2
+        # Two values occur equally often
+        if should_flip
+            result = imax[2] - 1
+        else
+            result = imax[1] - 1
+        end
+    elseif length(imax) == 3
+        # All three values (0, 1, 2) occur equally often.
+        result = 1
+    end
+    return UInt8(result)
+end
+
+"""
+    mode(geno::Matrix{UInt8})
+
+Return the modal genotpye.
+"""
+function mode(geno::Matrix{UInt8})
+    nrow, _ = size(geno)
+    result = zeros(UInt8, nrow)
+    for i in 1:nrow
+        result[i] = _mode(geno[i, :], iseven(i))
+    end
+    return result
+end
+

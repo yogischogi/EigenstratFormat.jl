@@ -12,7 +12,7 @@ export read_vendor_data, write_23andMe
 export add_individual, hash_ids
 
 # Computations
-export coverage, distance, getmarkers, impute_missing, impute_missing!
+export coverage, distance, getmarkers, impute_missing, impute_missing!, mode
 export pca!, pca_coordinates
 export population_idxs, remove_invariant!
 
