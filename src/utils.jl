@@ -283,13 +283,9 @@ end
     _mode(values::Vector{UInt8}, should_flip::Bool)
 
 Calculate the mode/modal value of a list of values.
-
-If there is no clear winner `should_flip` determines if
-the lower or higher value is chosen.
 """
-function _mode(values::Vector{UInt8}, should_flip::Bool)
-    result = missing_value
-    counts = zeros(UInt8, 4)
+function _mode(values::Vector{UInt8})
+    counts = zeros(Integer, 4)
     # Count values (0, 1, 2, 3).
     for v in values
         counts[v+1] += 1
@@ -298,33 +294,36 @@ function _mode(values::Vector{UInt8}, should_flip::Bool)
     if counts[4] == length(values)
         return missing_value
     end
-    # Count occurrences.
+    # Determine maximum.
     max = 0
-    imax = []
+    imax = 4  # 4 = index of missing value.
     for i in 1:3
         if counts[i] > max
             max = counts[i]
-            imax = [i]
+            imax = i
         elseif counts[i] == max
-            push!(imax, i)
+            # At least two values occur equally often.
+            imax = 4
         end
     end   
-    # Evaluate how often each mutation occurs.
-    if length(imax) == 1
-        # One value occurs more often than the others.
-        result = imax[1] - 1
-    elseif length(imax) == 2
-        # Two values occur equally often
-        if should_flip
-            result = imax[2] - 1
-        else
-            result = imax[1] - 1
+    return UInt8(imax - 1)
+end
+
+
+function _mean(values::Vector{UInt8})
+    count = 0
+    total = 0
+    for v in values
+        if v != missing_value
+            total += v
+            count += 1
         end
-    elseif length(imax) == 3
-        # All three values (0, 1, 2) occur equally often.
-        result = 1
     end
-    return UInt8(result)
+    if count == 0
+        return missing_value
+    end
+    a = floor(total / count + 0.5)
+    return UInt8(a)
 end
 
 """
@@ -336,7 +335,7 @@ function mode(geno::Matrix{UInt8})
     nrow, _ = size(geno)
     result = zeros(UInt8, nrow)
     for i in 1:nrow
-        result[i] = _mode(geno[i, :], iseven(i))
+        result[i] = _mode(geno[i, :])
     end
     return result
 end

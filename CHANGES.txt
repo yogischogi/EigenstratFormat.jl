@@ -1,3 +1,11 @@
+
+
+2026-09-27
+- Simplified mode().
+- Added _mean().
+- Added experimental example 99_mode.jl to add modal genotypes
+  to a database.
+
 2026-09-26
 - Example 10_animation_elaborate.jl that uses different
   colors for different sample ages.
