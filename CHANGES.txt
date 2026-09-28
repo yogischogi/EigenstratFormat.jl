@@ -1,4 +1,7 @@
-
+2026-09-28
+- Added mean()
+- Removed experimental example 99_mode.jl and
+  replaced it with 11_population_averages.jl.
 
 2026-09-27
 - Simplified mode().

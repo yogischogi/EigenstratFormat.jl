@@ -79,7 +79,10 @@ for i = 1:cols
     if c >= min_coverage && age >= 0
         # We are using the pseudo_haploid metric here because wer are
         # dealing with ancient samples.
-        d = distance(geno[:, compare_idx], geno[:, i]; metric = "pseudo_haploid")
+        d = trunc(Int64, distance(geno[:, compare_idx], geno[:, i]; metric = "pseudo_haploid"))
+        # Two other metrics to try.
+        #d = trunc(Int64, distance(geno[:, compare_idx], geno[:, i]; metric = "manhattan"))
+        #d = distance(geno[:, compare_idx], geno[:, i]; metric = "geometric")
         push!(result, [i, d, c, ind_id, age, country, population])
     end
 end

@@ -309,7 +309,13 @@ function _mode(values::Vector{UInt8})
     return UInt8(imax - 1)
 end
 
+"""
+    _mean(values::Vector{UInt8})
 
+Calculate the mean value of a list of values.
+
+This method returns only UInt8 integer values (0, 1, 2, 3).
+"""
 function _mean(values::Vector{UInt8})
     count = 0
     total = 0
@@ -339,4 +345,21 @@ function mode(geno::Matrix{UInt8})
     end
     return result
 end
+
+"""
+    mean(geno::Matrix{UInt8})
+
+Return the mean genotpye.
+"""
+function mean(geno::Matrix{UInt8})
+    nrow, _ = size(geno)
+    result = zeros(UInt8, nrow)
+    for i in 1:nrow
+        result[i] = _mean(geno[i, :])
+    end
+    return result
+end
+
+
+
 
