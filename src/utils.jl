@@ -10,8 +10,6 @@ Because geno matrices can get very big the original matrix
 is changed in place and is no longer valid.
 
 `geno` is the matrix. Each row represents one single marker for multiple samples.
-
-XXX Remove Floats, because they are too big and are not compatible with pseudo_haploid.
 """
 function remove_invariant!(geno::Matrix{<:Real})
     # Remove invariant markers by copying non-invariant markers in place
@@ -32,18 +30,16 @@ function remove_invariant!(geno::Matrix{<:Real})
 end
 
 """
-    impute_missing(geno::Matrix{<:Integer}; ind_idxs = Int64[])
+    impute_missing(geno::Matrix{UInt8}; ind_idxs = Int64[])
 
-Call `impute_missing(...)` with a `Float64` matrix instead of an `Integer` matrix.
-
-XXX Remove Floats, because they are too big and are not compatible with pseudo_haploid.
+Copy the geno matrix and call `impute_missing!(...)`.
 """
-function impute_missing(geno::Matrix{<:Integer}; ind_idxs = Int64[])
-    return impute_missing!(Matrix{Float64}(geno); ind_idxs = ind_idxs)
+function impute_missing(geno::Matrix{UInt8}; ind_idxs = Int64[])
+    return impute_missing!(copy(geno); ind_idxs = ind_idxs)
 end
 
 """
-    impute_missing!(geno::Matrix{<:AbstractFloat}; ind_idxs = Int64[])
+    impute_missing!(geno::Matrix{UInt8}; ind_idxs = Int64[])
 
 Impute missing values by replacing them with mean values.
 
@@ -58,30 +54,21 @@ if `ind_idx` is empty all samples are used.
 population-wise imputations. The this is not the case all samples are used
 for the imputation.
 """
-function impute_missing!(geno::Matrix{<:AbstractFloat}; ind_idxs = Int64[])
-    # Minimum number of values for ind_idxs imputation.
-    min_values = 5
+function impute_missing!(geno::Matrix{UInt8}; ind_idxs = Int64[])
     nrow, ncol = size(geno)
 
-    # If indices are empty use whole genomatrix.
+    # If indices are not specified use whole genomatrix.
     if length(ind_idxs) == 0
         ind_idxs = [i for i = 1:ncol]
     end
 
     # Compute mean values, 1 row represents 1 SNP.
     for i = 1:nrow
-        m = 0.0
-        # Get valid values.
-        valids = filter(x -> x != missing_value, geno[i, ind_idxs])
-        if length(valids) >= min_values
-            # Use only specified individuals to compute the average.
-            m = mean(valids)
-        else
+        # Calculate mean value.
+        m = _mean(geno[i, ind_idxs])
+        if m == missing_value
             # Take all samples to compute the average.
-            # Note that the number of values may be < min_values.
-            # This is intended because some studies rely on very small sample sizes
-            # and a result is better than nothing.
-            m = mean(filter(x -> x != missing_value, geno[i, :]))
+            m = _mean(geno[i, :])
         end
 
         # Fill up the geno matrix for the specified indices.
@@ -283,6 +270,7 @@ end
     _mode(values::Vector{UInt8}, should_flip::Bool)
 
 Calculate the mode/modal value of a list of values.
+The missing_value is not used for the calculation.
 """
 function _mode(values::Vector{UInt8})
     counts = zeros(Integer, 4)
@@ -315,6 +303,7 @@ end
 Calculate the mean value of a list of values.
 
 This method returns only UInt8 integer values (0, 1, 2, 3).
+The missing_value is not used for the calculation.
 """
 function _mean(values::Vector{UInt8})
     count = 0
@@ -333,11 +322,11 @@ function _mean(values::Vector{UInt8})
 end
 
 """
-    mode(geno::Matrix{UInt8})
+    mode_genotype(geno::Matrix{UInt8})
 
 Return the modal genotpye.
 """
-function mode(geno::Matrix{UInt8})
+function mode_genotype(geno::Matrix{UInt8})
     nrow, _ = size(geno)
     result = zeros(UInt8, nrow)
     for i in 1:nrow
@@ -347,11 +336,11 @@ function mode(geno::Matrix{UInt8})
 end
 
 """
-    mean(geno::Matrix{UInt8})
+    mean_genotype(geno::Matrix{UInt8})
 
 Return the mean genotpye.
 """
-function mean(geno::Matrix{UInt8})
+function mean_genotype(geno::Matrix{UInt8})
     nrow, _ = size(geno)
     result = zeros(UInt8, nrow)
     for i in 1:nrow

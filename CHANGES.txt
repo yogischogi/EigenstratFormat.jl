@@ -1,3 +1,9 @@
+2026-09-29
+- impute_missing!() now only works with UInt8 values.
+  This improves memory efficiency and performance.
+- pca!() changed to pca().
+- Renamed mean() and mode() to mean_genotype() and mode_genotype().
+
 2026-09-28
 - Added mean()
 - Removed experimental example 99_mode.jl and

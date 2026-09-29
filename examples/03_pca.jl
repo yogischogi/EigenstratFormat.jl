@@ -23,7 +23,7 @@ genotypes = remove_invariant!(genotypes)
 genotypes = impute_missing(genotypes)
 
 # Calculate PCA model.
-m = pca!(genotypes)
+m = pca(genotypes)
 
 # Use m to get PCA coordinates for each sample.
 coordinates = pca_coordinates(m, genotypes, individuals[:, :ID])

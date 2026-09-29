@@ -113,6 +113,15 @@ function pca!(geno::Matrix{Float64}; ncomponents = 25, scaling = "genetic drift"
 end
 
 """
+    pca(geno::Matrix{<:Real}; ncomponents = 25, scaling = "genetic drift")
+
+Convenience method to call pca!(...) with Float64.
+"""
+function pca(geno::Matrix{<:Real}; ncomponents = 25, scaling = "genetic drift")
+    pca!(Matrix{Float64}(geno); ncomponents, scaling)
+end
+
+"""
     pca_coordinates(M::MultivariateStats.PCA, geno::Matrix{<:Real}, sample_ids::Vector{<:AbstractString})
 
 Return PCA coordinates for all samples of a given genomatrix and `PCA M`.

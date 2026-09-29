@@ -30,7 +30,7 @@ genotypes = read_eigenstrat_geno(genofile)
 i = 1
 for (name, idxs) in populations
     println("Population: $name")
-    avg = mean(genotypes[:, idxs])
+    avg = mean_genotype(genotypes[:, idxs])
     println("coverage: $(coverage(avg))")
     println()
     global genotypes = hcat(genotypes, avg)
