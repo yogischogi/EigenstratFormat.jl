@@ -1,8 +1,12 @@
 2026-09-29
 - impute_missing!() now only works with UInt8 values.
-  This improves memory efficiency and performance.
+  This improves memory efficiency but PCA coordinates for samples
+  may slightly change.
+  Also the old imputed genotypes were not compatible with the
+  new pseudo_haploid metric.    
 - pca!() changed to pca().
 - Renamed mean() and mode() to mean_genotype() and mode_genotype().
+- Simplified example 02_aadr.jl.
 
 2026-09-28
 - Added mean()

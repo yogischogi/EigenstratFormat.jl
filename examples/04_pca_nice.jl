@@ -3,7 +3,7 @@
 using CairoMakie, CSV, DataFrames, EigenstratFormat
 
 # ADJUST basedir TO THE PATH ON YOUR COMPUTER.
-basedir = normpath("/home/dirk/Geno/AADR/database/")
+basedir = normpath("/home/dirk/Geno/AADR/database/v66.p1/")
 
 indfile = joinpath(basedir, "HGDP.ind")
 
@@ -17,7 +17,7 @@ pop_indices = population_idxs(individuals.Status)
 
 # Remove small populations to get a nice plot.
 for (name, indices) in pop_indices
-    if length(indices) < 3
+    if length(indices) < 5
         delete!(pop_indices, name)
     end
 end

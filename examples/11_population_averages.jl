@@ -9,9 +9,9 @@ indfile = joinpath(basedir, "zzz_database.ind")
 snpfile = joinpath(basedir, "zzz_database.snp")
 genofile = joinpath(basedir, "zzz_database.geno")
 
-outindfile = joinpath(basedir, "zzz_database_mean.ind")
-outsnpfile = joinpath(basedir, "zzz_database_mean.snp")
-outgenofile = joinpath(basedir, "zzz_database_mean.geno")
+indfileout = joinpath(basedir, "zzz_database_mean.ind")
+snpfileout = joinpath(basedir, "zzz_database_mean.snp")
+genofileout = joinpath(basedir, "zzz_database_mean.geno")
 
 # Load database.
 individuals = read_eigenstrat_ind(indfile)
@@ -43,11 +43,11 @@ end
 # Write new database containing average genotypes.
 # SNPs remain untouched.
 snps = read_eigenstrat_snp(snpfile)
-write_eigenstrat_snp(outsnpfile, snps)
-write_eigenstrat_ind(outindfile, individuals)
-snp_hash = hash_ids(outsnpfile)
-ind_hash = hash_ids(outindfile)
-write_eigenstrat_geno(outgenofile, genotypes; ind_hash = ind_hash, snp_hash = snp_hash)
+write_eigenstrat_snp(snpfileout, snps)
+write_eigenstrat_ind(indfileout, individuals)
+snp_hash = hash_ids(snpfileout)
+ind_hash = hash_ids(indfileout)
+write_eigenstrat_geno(genofileout, genotypes; ind_hash = ind_hash, snp_hash = snp_hash)
 
 
 

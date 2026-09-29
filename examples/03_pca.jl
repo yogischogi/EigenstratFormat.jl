@@ -4,7 +4,7 @@ using CairoMakie, CSV, EigenstratFormat, DataFrames, Statistics
 
 # Database that was created in the 02_aadr.jl example.
 # ADJUST basedir TO THE PATH ON YOUR COMPUTER.
-basedir = normpath("/home/dirk/Geno/AADR/database/")
+basedir = normpath("/home/dirk/Geno/AADR/database/v66.p1/")
 
 indfile = joinpath(basedir, "HGDP.ind")
 snpfile = joinpath(basedir, "HGDP.snp")
