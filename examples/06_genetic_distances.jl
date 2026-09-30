@@ -24,8 +24,6 @@ anno_country_col = 17
 # We consider only samples with a minimum coverage.
 # The chosen 0.8 in this example is just arbitrary.
 # You can adjust this to your needs.
-# However the pseudo_haploid metric seems to need a
-# sufficiently high coverage to produce good results.
 min_coverage = 0.8
 
 # Read minimal information about individuals.
@@ -73,16 +71,12 @@ for i = 1:cols
         country = anno[idx, anno_country_col]
     end
 
-    # Add samples to result.
+    # Filter samples and add them to the result.
     c = coverage(geno[:, i])
-    # Filter samples.
     if c >= min_coverage && age >= 0
-        # We are using the pseudo_haploid metric here because wer are
-        # dealing with ancient samples.
-        d = trunc(Int64, distance(geno[:, compare_idx], geno[:, i]; metric = "pseudo_haploid"))
-        # Two other metrics to try.
-        #d = trunc(Int64, distance(geno[:, compare_idx], geno[:, i]; metric = "manhattan"))
-        #d = distance(geno[:, compare_idx], geno[:, i]; metric = "geometric")
+        # Before calculating the distance we call pseudohaploid() to
+        # make sure that all samples are compatible.
+        d = distance(geno[:, compare_idx], pseudohaploid(geno[:, i]))
         push!(result, [i, d, c, ind_id, age, country, population])
     end
 end

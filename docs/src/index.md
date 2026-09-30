@@ -43,6 +43,12 @@ After that you may want to take a look at the
   visualizes the previously calculated genetic distances.
 - [09_animation.jl](https://github.com/yogischogi/EigenstratFormat.jl/blob/main/examples/09_animation.jl)
   creates an animation of related samples around the world according to genetic distances.
+- [10_animation_elaborate.jl](https://github.com/yogischogi/EigenstratFormat.jl/blob/main/examples/10_animation_elaborate.jl)
+  creates a much nicer animation than the previous example.
+- [11_population_averages.jl](https://github.com/yogischogi/EigenstratFormat.jl/blob/main/examples/11_population_averages.jl)
+  computes population averages for populations listed in the .ind file.
+- [12_relatives_through_time.jl](https://github.com/yogischogi/EigenstratFormat.jl/blob/main/examples/12_relatives_through_time.jl)
+  calculates a samples' closest relatives for different time periods.
 
 
 ## Human DNA samples

@@ -64,11 +64,15 @@ function impute_missing!(geno::Matrix{UInt8}; ind_idxs = Int64[])
 
     # Compute mean values, 1 row represents 1 SNP.
     for i = 1:nrow
-        # Calculate mean value.
+        # Calculate mean value using the specified values.
         m = _mean(geno[i, ind_idxs])
         if m == missing_value
-            # Take all samples to compute the average.
+            # Include all samples to compute the average.
             m = _mean(geno[i, :])
+        end
+        # If m is still missing set it to 0 (no mutations).
+        if m == missing_value
+            m = 0
         end
 
         # Fill up the geno matrix for the specified indices.
@@ -127,68 +131,20 @@ It appears that because of the quadratic terms in the geometric distance
 the Manhattan distance often yields better results when it comes to
 approximation.
 
-`metric` can be "geometric", "manhattan" or "pseudo_haploid".
+`metric` can be "geometric" or "manhattan".
 
-`geometric` or `manhattan` produce good results for samples that
-were processed uding diploid calls (modern samples) or if all samples
-were processed using the same method.
-
-`pseudo_haploid` works well if you want to compare high quality samples
-(diploid calls) with low quality samples (pseudo haploid calls), usually
-mixtures of modern and ancient samples.
-
-It simulates pseudo haploid calling on high quality samples (diploid).
-Thus it introduces a statistical uncertainty and the results are
-not totally reproduceable.
+To compare genotypes that were retrieved by haploid and pseudo-haploid calls
+it is a good idea to make them compatible by calling pseudohaploid(genotype)
+before calculating the distance.
 """
 function distance(genotype1::Vector, genotype2::Vector; metric = "geometric")
     if metric == "geometric"
         return _geometric_distance(genotype1, genotype2)
     elseif metric == "manhattan"
         return _manhattan_distance(genotype1, genotype2)
-    elseif metric == "pseudo_haploid"
-        return _pseudo_haploid_distance(genotype1, genotype2)
     else
         throw("distance() only supports metrics 'geometric' and 'manhattan'.")
     end
-end
-
-"""
-    _pseudo_haploid_distance(genotype1::Vector, genotype2::Vector)
-
-Calculate a distance between two haplotypes based on simulated pseudo
-haploid calling.
-
-This works well for samples that were processed using different sequencing
-techniques. But it introduces a statistical uncertainty.
-"""
-function _pseudo_haploid_distance(genotype1::Vector, genotype2::Vector)
-    distance = 0
-    comparisons = 0
-    for i = 1:length(genotype1)
-        a = genotype1[i]
-        b = genotype2[i]
-        # Calculate distance
-        if a != missing_value && b != missing_value
-            comparisons += 1
-            # Introduce uncertainty to simulate pseudo haploid calling.
-            # In the AADR databse samples which were called by pseudo haploid
-            # always produce 0 or 2.
-            # If a or b is identical to 1, pseudo haploid calling was not used.
-            if a == 1
-                a = rand([0, 2])
-            end
-            if b == 1
-                b = rand([0, 2])
-            end
-            # Compare.
-            if a != b
-                distance += 1
-            end
-        end
-    end
-    approx = distance / comparisons * length(genotype1)
-    return approx
 end
 
 """
@@ -349,6 +305,32 @@ function mean_genotype(geno::Matrix{UInt8})
     return result
 end
 
+"""
+    pseudohaploid(genotype::Vector{UInt8})
+
+Return a genotye that simulates pseudo-haploid calls
+on a diploid genotype.
+
+Note that this method introduces statistical noise. So the
+results are not fully reproducible.
+
+Gentotypes that were allready retrieved by pseude-haploid calls
+remain the untouched.
+"""
+function pseudohaploid(genotype::Vector{UInt8})
+    result = zeros(UInt8, length(genotype))
+    for i = 1:length(genotype)
+        if genotype[i] == 1        
+            # Introduce uncertainty to simulate pseudo haploid calling.
+            # In the AADR databse samples which were called by pseudo-haploid
+            # always produce 0 or 2.
+            result[i] = rand([0, 2])
+        else
+            result[i] = genotype[i]
+        end
+    end
+    return result
+end
 
 
 

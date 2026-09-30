@@ -1,3 +1,10 @@
+2026-09-30
+- Removed the pseudo_haploid distance.
+  Added pseudohaploid() instead. This results in cleaner code
+  and more fine grained control.
+- Added example 12_relatives_through_time.jl.
+- Bug fix: impute_missing!() could return missing values.
+
 2026-09-29
 - impute_missing!() now only works with UInt8 values.
   This improves memory efficiency but PCA coordinates for samples

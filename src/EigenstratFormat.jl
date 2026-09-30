@@ -13,6 +13,7 @@ export add_individual, hash_ids
 
 # Computations
 export coverage, distance, getmarkers, impute_missing, impute_missing!
+export pseudohaploid
 export mean_genotype, mode_genotype
 export pca, pca_coordinates
 export population_idxs, remove_invariant!
