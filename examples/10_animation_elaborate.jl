@@ -17,7 +17,8 @@ distances = DataFrame(CSV.File(distancesfile))
 id_col = 1
 lat_col = 18
 long_col = 19
-sample_coordinates = DataFrame(id = annos[:, id_col], lat = annos[:, lat_col], long = annos[:, long_col])
+sample_coordinates =
+    DataFrame(id = annos[:, id_col], lat = annos[:, lat_col], long = annos[:, long_col])
 # Make sure that lat and long exist.
 coordinates = DataFrame(id = String[], lat = Float64[], long = Float64[])
 for row in eachrow(sample_coordinates)
@@ -32,7 +33,7 @@ end
 # Add coordinates to distances.
 distances = leftjoin(distances, coordinates, on = :id)
 # Remove entries where lat or long are missing.
-distances = subset(distances, :lat => x -> (!ismissing).(x) , :long => x -> (!ismissing).(x) )
+distances = subset(distances, :lat => x -> (!ismissing).(x), :long => x -> (!ismissing).(x))
 
 # Filter for age of samples.
 # We use only historical samples here.
@@ -72,9 +73,8 @@ labels = [
     "3000 - 4000 years",
     "4000 - 5000 years",
 ]
-marker_elements = [
-    MarkerElement(marker = markers[i], color = colors[i]) for i = 1:length(labels)
-]
+marker_elements =
+    [MarkerElement(marker = markers[i], color = colors[i]) for i = 1:length(labels)]
 Legend(fig[1, 2], marker_elements, labels, "Sample age")
 
 # Create an animation by modifying the figure parameters frame by frame.
@@ -83,17 +83,45 @@ record(fig, outfile, iterator; framerate = 2) do step
     ga.title = "Relatives, genetic distance <= $(trunc(step; digits = 1))"
 
     samples = subset(distances, :distance => d -> d .<= step)
-    samples1000 = subset(samples, :age => a -> a .<= 1000) 
+    samples1000 = subset(samples, :age => a -> a .<= 1000)
     samples2000 = subset(samples, :age => a -> (a .<= 2000) .& (a .> 1000))
     samples3000 = subset(samples, :age => a -> (a .<= 3000) .& (a .> 2000))
     samples4000 = subset(samples, :age => a -> (a .<= 4000) .& (a .> 3000))
     samples5000 = subset(samples, :age => a -> (a .<= 5000) .& (a .> 4000))
 
-    scatter!(ga, samples1000[!, :long], samples1000[!, :lat]; marker = markers[1], color = colors[1])
-    scatter!(ga, samples2000[!, :long], samples2000[!, :lat]; marker = markers[2], color = colors[2])
-    scatter!(ga, samples3000[!, :long], samples3000[!, :lat]; marker = markers[3], color = colors[3])
-    scatter!(ga, samples4000[!, :long], samples4000[!, :lat]; marker = markers[4], color = colors[4])
-    scatter!(ga, samples5000[!, :long], samples5000[!, :lat]; marker = markers[5], color = colors[5])
+    scatter!(
+        ga,
+        samples1000[!, :long],
+        samples1000[!, :lat];
+        marker = markers[1],
+        color = colors[1],
+    )
+    scatter!(
+        ga,
+        samples2000[!, :long],
+        samples2000[!, :lat];
+        marker = markers[2],
+        color = colors[2],
+    )
+    scatter!(
+        ga,
+        samples3000[!, :long],
+        samples3000[!, :lat];
+        marker = markers[3],
+        color = colors[3],
+    )
+    scatter!(
+        ga,
+        samples4000[!, :long],
+        samples4000[!, :lat];
+        marker = markers[4],
+        color = colors[4],
+    )
+    scatter!(
+        ga,
+        samples5000[!, :long],
+        samples5000[!, :lat];
+        marker = markers[5],
+        color = colors[5],
+    )
 end
-
-

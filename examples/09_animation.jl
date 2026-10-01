@@ -16,7 +16,8 @@ distances = DataFrame(CSV.File(distancesfile))
 id_col = 1
 lat_col = 18
 long_col = 19
-sample_coordinates = DataFrame(id = annos[:, id_col], lat = annos[:, lat_col], long = annos[:, long_col])
+sample_coordinates =
+    DataFrame(id = annos[:, id_col], lat = annos[:, lat_col], long = annos[:, long_col])
 # Make sure that lat and long exist.
 coordinates = DataFrame(id = String[], lat = Float64[], long = Float64[])
 for row in eachrow(sample_coordinates)
@@ -31,7 +32,7 @@ end
 # Add coordinates to distances.
 distances = leftjoin(distances, coordinates, on = :id)
 # Remove entries where lat or long are missing.
-distances = subset(distances, :lat => x -> (!ismissing).(x) , :long => x -> (!ismissing).(x) )
+distances = subset(distances, :lat => x -> (!ismissing).(x), :long => x -> (!ismissing).(x))
 
 # Filter for age of samples.
 # We use only historical samples here.
@@ -68,5 +69,3 @@ record(fig, outfile, iterator; framerate = 2) do step
     ga.title = "Relatives " * string(step)
     scatter!(ga, samples[!, :long], samples[!, :lat]; color = :red)
 end
-
-

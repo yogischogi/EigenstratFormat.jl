@@ -93,9 +93,9 @@ function _set_bitpair(byte::UInt8, pos::Integer, bitpair::UInt8)
     elseif pos == 1
         byte | (bitpair << 4)
     elseif pos == 2
-        byte | (bitpair << 2) 
+        byte | (bitpair << 2)
     elseif pos == 3
-        byte | bitpair        
+        byte | bitpair
     end
 end
 
@@ -739,7 +739,7 @@ function add_individual(
     if fileformat == "TGENO"
         # Each line contains a full set of SNPs for an individual.
         in_bytes_per_line = Int64(ceil(nsnp / 4))
-        out_bytes_per_line = Int64(ceil(length(idxs) / 4))        
+        out_bytes_per_line = Int64(ceil(length(idxs) / 4))
 
         # One row must have at least the length of the file header.
         if in_bytes_per_line < geno_header_size
@@ -788,7 +788,7 @@ function add_individual(
                     genotype = ('-', '-')
                     if haskey(ind_dict, rsid)
                         alleles = ind_dict[rsid]
-                        genotype = (alleles[1], alleles[2])                        
+                        genotype = (alleles[1], alleles[2])
                     end
                     byte::UInt8 = 0
                     bitpair = _encode(genotype, byte, 3, reference)

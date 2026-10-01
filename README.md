@@ -14,11 +14,11 @@ and in more detail in the [Eigensoft package](https://github.com/DReichLab/EIG).
 
 ## Examples
 
-![distances.png](distances.png)
+![relatives.jpg](relatives.jpg)
 
-A distance plot showing genetic distances of a modern human to different
-historical populations.
-Example [08_visualization.jl](https://github.com/yogischogi/EigenstratFormat.jl/tree/main/examples/08_visualization.jl)
+A map of ancient DNA samples related to a modern individual.
+
+Example [10_animation_elaborate.jl](https://github.com/yogischogi/EigenstratFormat.jl/tree/main/examples/10_animation_elaborate.jl)
 
 ![pcaplot.png](pcaplot.png)
 

@@ -22,7 +22,7 @@ interval(sample_age) = floor(Integer, (sample_age - start_year) / interval_lengt
 samples = DataFrame(CSV.File(distancesfile))
 
 # Create an array that holds a DataFrame of samples for each time period.
-relatives_in_time = [similar(samples, 0) for _ in 1:intervals]
+relatives_in_time = [similar(samples, 0) for _ = 1:intervals]
 
 # Fill intervals with ancient samples.
 for sample in eachrow(samples)
@@ -44,8 +44,3 @@ for (i, table) in enumerate(relatives_in_time)
     println("Closest matches from year: $start to: $final")
     println(first(table, 10))
 end
-
-
-
-
-

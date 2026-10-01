@@ -241,7 +241,7 @@ function _mode(values::Vector{UInt8})
     # Determine maximum.
     max = 0
     imax = 4  # 4 = index of missing value.
-    for i in 1:3
+    for i = 1:3
         if counts[i] > max
             max = counts[i]
             imax = i
@@ -249,7 +249,7 @@ function _mode(values::Vector{UInt8})
             # At least two values occur equally often.
             imax = 4
         end
-    end   
+    end
     return UInt8(imax - 1)
 end
 
@@ -285,7 +285,7 @@ Return the modal genotpye.
 function mode_genotype(geno::Matrix{UInt8})
     nrow, _ = size(geno)
     result = zeros(UInt8, nrow)
-    for i in 1:nrow
+    for i = 1:nrow
         result[i] = _mode(geno[i, :])
     end
     return result
@@ -299,7 +299,7 @@ Return the mean genotpye.
 function mean_genotype(geno::Matrix{UInt8})
     nrow, _ = size(geno)
     result = zeros(UInt8, nrow)
-    for i in 1:nrow
+    for i = 1:nrow
         result[i] = _mean(geno[i, :])
     end
     return result
@@ -320,7 +320,7 @@ remain the untouched.
 function pseudohaploid(genotype::Vector{UInt8})
     result = zeros(UInt8, length(genotype))
     for i = 1:length(genotype)
-        if genotype[i] == 1        
+        if genotype[i] == 1
             # Introduce uncertainty to simulate pseudo haploid calling.
             # In the AADR databse samples which were called by pseudo-haploid
             # always produce 0 or 2.
@@ -331,6 +331,3 @@ function pseudohaploid(genotype::Vector{UInt8})
     end
     return result
 end
-
-
-

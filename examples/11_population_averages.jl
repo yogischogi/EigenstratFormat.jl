@@ -35,7 +35,7 @@ for (name, idxs) in populations
     println()
     global genotypes = hcat(genotypes, avg)
     # Name for population, includes number of individuals.
-    avg_name = "m$(i)_$(length(idxs))" 
+    avg_name = "m$(i)_$(length(idxs))"
     push!(individuals, [avg_name, "U", name])
     global i += 1
 end
@@ -48,6 +48,3 @@ write_eigenstrat_ind(indfileout, individuals)
 snp_hash = hash_ids(snpfileout)
 ind_hash = hash_ids(indfileout)
 write_eigenstrat_geno(genofileout, genotypes; ind_hash = ind_hash, snp_hash = snp_hash)
-
-
-
